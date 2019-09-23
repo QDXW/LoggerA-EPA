@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_layout_file>
+	<ActiveTarget name="Release" />
+	<File name="../Alarm/alarm.c" open="1" top="0" tabpos="8">
+		<Cursor position="30946" topLine="726" />
+	</File>
+	<File name="../Alarm/alarmExtern.h" open="0" top="0" tabpos="0">
+		<Cursor position="905" topLine="1" />
+	</File>
+	<File name="../EnetPortPrs/Port_Fun.c" open="0" top="0" tabpos="11">
+		<Cursor position="1354" topLine="24" />
+	</File>
+	<File name="../Ethernet/Ethernet.c" open="1" top="0" tabpos="9">
+		<Cursor position="34749" topLine="867" />
+	</File>
+	<File name="../INI/libini.c" open="0" top="0" tabpos="0">
+		<Cursor position="1196" topLine="22" />
+	</File>
+	<File name="../Main/main.c" open="1" top="0" tabpos="4">
+		<Cursor position="7828" topLine="185" />
+	</File>
+	<File name="../Module/Module.c" open="1" top="0" tabpos="6">
+		<Cursor position="20405" topLine="512" />
+	</File>
+	<File name="../SGCC/protocol.c" open="1" top="0" tabpos="10">
+		<Cursor position="25219" topLine="485" />
+	</File>
+	<File name="../SGCC/protocol.h" open="0" top="0" tabpos="2">
+		<Cursor position="924" topLine="0" />
+	</File>
+	<File name="../SGCC/store.c" open="1" top="0" tabpos="5">
+		<Cursor position="10463" topLine="266" />
+	</File>
+	<File name="../XML/xml.c" open="0" top="0" tabpos="6">
+		<Cursor position="15753" topLine="369" />
+	</File>
+	<File name="../interface/common.c" open="1" top="0" tabpos="1">
+		<Cursor position="2680" topLine="120" />
+	</File>
+	<File name="../interface/common.h" open="1" top="0" tabpos="3">
+		<Cursor position="19575" topLine="504" />
+	</File>
+	<File name="../interface/exporthelper.c" open="0" top="0" tabpos="0">
+		<Cursor position="2005" topLine="12" />
+	</File>
+	<File name="../interface/interface.c" open="1" top="1" tabpos="2">
+		<Cursor position="10020" topLine="178" />
+	</File>
+	<File name="../interface/uart.c" open="1" top="0" tabpos="7">
+		<Cursor position="13000" topLine="438" />
+	</File>
+</CodeBlocks_layout_file>

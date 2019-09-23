@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Device>
+<Tag id="01">
+<Use>1</Use>
+<ESN>511</ESN>
+<Table>6</Table>
+<Port>1</Port>
+<Protocol>1</Protocol>
+<SoftVersion></SoftVersion>
+</Tag>
+<Tag id="02">
+<Use>1</Use>
+<ESN>522</ESN>
+<Table>6</Table>
+<Port>1</Port>
+<Protocol>1</Protocol>
+<SoftVersion></SoftVersion>
+</Tag>
+<Tag id="03">
+<Use>1</Use>
+<ESN>533</ESN>
+<Table>6</Table>
+<Port>1</Port>
+<Protocol>1</Protocol>
+<SoftVersion></SoftVersion>
+</Tag>
+<Tag id="04">
+<Use>1</Use>
+<ESN>544</ESN>
+<Table>6</Table>
+<Port>1</Port>
+<Protocol>1</Protocol>
+<SoftVersion></SoftVersion>
+</Tag>
+</Device>

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Protocol>2</Protocol>
+<Device>
+<Tag id="01">
+<Addr>10000</Addr>
+<Len>01</Len>
+<Type>2</Type>
+<DataType>1</DataType>
+</Tag>
+<Tag id="02">
+<Addr>10002</Addr>
+<Len>01</Len>
+<Type>2</Type>
+<DataType>1</DataType>
+</Tag>
+<Tag id="03">
+<Addr>10004</Addr>
+<Len>01</Len>
+<Type>2</Type>
+<DataType>1</DataType>
+</Tag>
+<Tag id="04">
+<Addr>10006</Addr>
+<Len>01</Len>
+<Type>2</Type>
+<DataType>1</DataType>
+</Tag>
+<Tag id="05">
+<Addr>10008</Addr>
+<Len>01</Len>
+<Type>2</Type>
+<DataType>1</DataType>
+</Tag>
+<Tag id="06">
+<Addr>10010</Addr>
+<Len>01</Len>
+<Type>2</Type>
+<DataType>1</DataType>
+</Tag>
+<Tag id="07">
+<Addr>10012</Addr>
+<Len>01</Len>
+<Type>2</Type>
+<DataType>1</DataType>
+</Tag>
+<Tag id="08">
+<Addr>10014</Addr>
+<Len>01</Len>
+<Type>2</Type>
+<DataType>1</DataType>
+</Tag>
+</Device>

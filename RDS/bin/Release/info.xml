@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Device>
+<Tag id="01">
+<Type>6</Type>
+<YX>0001</YX>
+<YC>4001</YC>
+<YK>0000</YK>
+<SD>0000</SD>
+<DD>0000</DD>
+</Tag>
+<Tag id="02">
+<Type>6</Type>
+<YX>0002</YX>
+<YC>4086</YC>
+<YK>0000</YK>
+<SD>0000</SD>
+<DD>0000</DD>
+</Tag>
+<Tag id="03">
+<Type>6</Type>
+<YX>0003</YX>
+<YC>410B</YC>
+<YK>0000</YK>
+<SD>0000</SD>
+<DD>0000</DD>
+</Tag>
+<Tag id="04">
+<Type>6</Type>
+<YX>0004</YX>
+<YC>4190</YC>
+<YK>0000</YK>
+<SD>0000</SD>
+<DD>0000</DD>
+</Tag>
+</Device>

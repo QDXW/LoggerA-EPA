@@ -1,0 +1,814 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Protocol>1</Protocol>
+<Device>
+<Tag id="01">
+<Addr>00000</Addr>
+<Len>01</Len>
+<Type>1</Type>
+<DataType>1</DataType>
+</Tag>
+<Tag id="02">
+<Addr>00001</Addr>
+<Len>01</Len>
+<Type>1</Type>
+<DataType>1</DataType>
+</Tag>
+<Tag id="03">
+<Addr>00002</Addr>
+<Len>01</Len>
+<Type>1</Type>
+<DataType>1</DataType>
+</Tag>
+<Tag id="04">
+<Addr>00003</Addr>
+<Len>01</Len>
+<Type>1</Type>
+<DataType>1</DataType>
+</Tag>
+<Tag id="05">
+<Addr>00004</Addr>
+<Len>01</Len>
+<Type>1</Type>
+<DataType>1</DataType>
+</Tag>
+<Tag id="06">
+<Addr>00005</Addr>
+<Len>01</Len>
+<Type>1</Type>
+<DataType>1</DataType>
+</Tag>
+<Tag id="07">
+<Addr>00006</Addr>
+<Len>01</Len>
+<Type>1</Type>
+<DataType>1</DataType>
+</Tag>
+<Tag id="08">
+<Addr>00007</Addr>
+<Len>01</Len>
+<Type>1</Type>
+<DataType>1</DataType>
+</Tag>
+<Tag id="09">
+<Addr>00008</Addr>
+<Len>01</Len>
+<Type>1</Type>
+<DataType>1</DataType>
+</Tag>
+<Tag id="10">
+<Addr>00009</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>3</DataType>
+</Tag>
+<Tag id="11">
+<Addr>00011</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>3</DataType>
+</Tag>
+<Tag id="12">
+<Addr>00013</Addr>
+<Len>01</Len>
+<Type>1</Type>
+<DataType>1</DataType>
+</Tag>
+<Tag id="13">
+<Addr>00014</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>3</DataType>
+</Tag>
+<Tag id="14">
+<Addr>00016</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>3</DataType>
+</Tag>
+<Tag id="15">
+<Addr>00018</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>3</DataType>
+</Tag>
+<Tag id="16">
+<Addr>00020</Addr>
+<Len>01</Len>
+<Type>1</Type>
+<DataType>1</DataType>
+</Tag>
+<Tag id="17">
+<Addr>00021</Addr>
+<Len>01</Len>
+<Type>1</Type>
+<DataType>1</DataType>
+</Tag>
+<Tag id="18">
+<Addr>00022</Addr>
+<Len>01</Len>
+<Type>1</Type>
+<DataType>1</DataType>
+</Tag>
+<Tag id="19">
+<Addr>00023</Addr>
+<Len>01</Len>
+<Type>1</Type>
+<DataType>1</DataType>
+</Tag>
+<Tag id="20">
+<Addr>00024</Addr>
+<Len>01</Len>
+<Type>1</Type>
+<DataType>1</DataType>
+</Tag>
+<Tag id="21">
+<Addr>00025</Addr>
+<Len>01</Len>
+<Type>1</Type>
+<DataType>1</DataType>
+</Tag>
+<Tag id="22">
+<Addr>00026</Addr>
+<Len>01</Len>
+<Type>1</Type>
+<DataType>1</DataType>
+</Tag>
+<Tag id="23">
+<Addr>00027</Addr>
+<Len>01</Len>
+<Type>1</Type>
+<DataType>1</DataType>
+</Tag>
+<Tag id="24">
+<Addr>00028</Addr>
+<Len>01</Len>
+<Type>1</Type>
+<DataType>1</DataType>
+</Tag>
+<Tag id="25">
+<Addr>00029</Addr>
+<Len>01</Len>
+<Type>1</Type>
+<DataType>1</DataType>
+</Tag>
+<Tag id="26">
+<Addr>00030</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>5</DataType>
+</Tag>
+<Tag id="27">
+<Addr>00032</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>5</DataType>
+</Tag>
+<Tag id="28">
+<Addr>00034</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>5</DataType>
+</Tag>
+<Tag id="29">
+<Addr>00036</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>5</DataType>
+</Tag>
+<Tag id="30">
+<Addr>00038</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>5</DataType>
+</Tag>
+<Tag id="31">
+<Addr>00040</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>5</DataType>
+</Tag>
+<Tag id="32">
+<Addr>00042</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>5</DataType>
+</Tag>
+<Tag id="33">
+<Addr>00044</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>5</DataType>
+</Tag>
+<Tag id="34">
+<Addr>00046</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>5</DataType>
+</Tag>
+<Tag id="35">
+<Addr>00048</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>5</DataType>
+</Tag>
+<Tag id="36">
+<Addr>00050</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>5</DataType>
+</Tag>
+<Tag id="37">
+<Addr>00052</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>5</DataType>
+</Tag>
+<Tag id="38">
+<Addr>00054</Addr>
+<Len>01</Len>
+<Type>1</Type>
+<DataType>1</DataType>
+</Tag>
+<Tag id="39">
+<Addr>00055</Addr>
+<Len>01</Len>
+<Type>1</Type>
+<DataType>1</DataType>
+</Tag>
+<Tag id="40">
+<Addr>00056</Addr>
+<Len>01</Len>
+<Type>1</Type>
+<DataType>1</DataType>
+</Tag>
+<Tag id="41">
+<Addr>00057</Addr>
+<Len>01</Len>
+<Type>1</Type>
+<DataType>1</DataType>
+</Tag>
+<Tag id="42">
+<Addr>00059</Addr>
+<Len>01</Len>
+<Type>1</Type>
+<DataType>1</DataType>
+</Tag>
+<Tag id="43">
+<Addr>00060</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>3</DataType>
+</Tag>
+<Tag id="44">
+<Addr>00062</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>3</DataType>
+</Tag>
+<Tag id="45">
+<Addr>00064</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>3</DataType>
+</Tag>
+<Tag id="46">
+<Addr>00066</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>3</DataType>
+</Tag>
+<Tag id="47">
+<Addr>00068</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>3</DataType>
+</Tag>
+<Tag id="48">
+<Addr>00070</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>3</DataType>
+</Tag>
+<Tag id="49">
+<Addr>00072</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>3</DataType>
+</Tag>
+<Tag id="50">
+<Addr>00074</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>3</DataType>
+</Tag>
+<Tag id="51">
+<Addr>00076</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>3</DataType>
+</Tag>
+<Tag id="52">
+<Addr>00078</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>3</DataType>
+</Tag>
+<Tag id="53">
+<Addr>00080</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>3</DataType>
+</Tag>
+<Tag id="54">
+<Addr>00082</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>3</DataType>
+</Tag>
+<Tag id="55">
+<Addr>00084</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>3</DataType>
+</Tag>
+<Tag id="56">
+<Addr>00086</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>3</DataType>
+</Tag>
+<Tag id="57">
+<Addr>00088</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>3</DataType>
+</Tag>
+<Tag id="58">
+<Addr>00090</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>3</DataType>
+</Tag>
+<Tag id="59">
+<Addr>00092</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>3</DataType>
+</Tag>
+<Tag id="60">
+<Addr>00094</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>3</DataType>
+</Tag>
+<Tag id="61">
+<Addr>00096</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>3</DataType>
+</Tag>
+<Tag id="62">
+<Addr>00098</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>3</DataType>
+</Tag>
+<Tag id="63">
+<Addr>00100</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>3</DataType>
+</Tag>
+<Tag id="64">
+<Addr>00102</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>3</DataType>
+</Tag>
+<Tag id="65">
+<Addr>00104</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>3</DataType>
+</Tag>
+<Tag id="66">
+<Addr>00106</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>3</DataType>
+</Tag>
+<Tag id="67">
+<Addr>00108</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>3</DataType>
+</Tag>
+<Tag id="68">
+<Addr>00110</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>3</DataType>
+</Tag>
+<Tag id="69">
+<Addr>00112</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>3</DataType>
+</Tag>
+<Tag id="70">
+<Addr>00114</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>3</DataType>
+</Tag>
+<Tag id="71">
+<Addr>00116</Addr>
+<Len>01</Len>
+<Type>1</Type>
+<DataType>1</DataType>
+</Tag>
+<Tag id="72">
+<Addr>00117</Addr>
+<Len>01</Len>
+<Type>1</Type>
+<DataType>1</DataType>
+</Tag>
+<Tag id="73">
+<Addr>00118</Addr>
+<Len>01</Len>
+<Type>1</Type>
+<DataType>1</DataType>
+</Tag>
+<Tag id="74">
+<Addr>00119</Addr>
+<Len>01</Len>
+<Type>1</Type>
+<DataType>1</DataType>
+</Tag>
+<Tag id="75">
+<Addr>00120</Addr>
+<Len>01</Len>
+<Type>1</Type>
+<DataType>1</DataType>
+</Tag>
+<Tag id="76">
+<Addr>00121</Addr>
+<Len>01</Len>
+<Type>1</Type>
+<DataType>1</DataType>
+</Tag>
+<Tag id="77">
+<Addr>00302</Addr>
+<Len>01</Len>
+<Type>1</Type>
+<DataType>1</DataType>
+</Tag>
+<Tag id="78">
+<Addr>00303</Addr>
+<Len>01</Len>
+<Type>1</Type>
+<DataType>1</DataType>
+</Tag>
+<Tag id="79">
+<Addr>00304</Addr>
+<Len>01</Len>
+<Type>1</Type>
+<DataType>1</DataType>
+</Tag>
+<Tag id="80">
+<Addr>00305</Addr>
+<Len>01</Len>
+<Type>1</Type>
+<DataType>1</DataType>
+</Tag>
+<Tag id="81">
+<Addr>00306</Addr>
+<Len>01</Len>
+<Type>1</Type>
+<DataType>1</DataType>
+</Tag>
+<Tag id="82">
+<Addr>00307</Addr>
+<Len>01</Len>
+<Type>1</Type>
+<DataType>1</DataType>
+</Tag>
+<Tag id="83">
+<Addr>00308</Addr>
+<Len>01</Len>
+<Type>1</Type>
+<DataType>1</DataType>
+</Tag>
+<Tag id="84">
+<Addr>00309</Addr>
+<Len>01</Len>
+<Type>1</Type>
+<DataType>1</DataType>
+</Tag>
+<Tag id="85">
+<Addr>00310</Addr>
+<Len>01</Len>
+<Type>1</Type>
+<DataType>1</DataType>
+</Tag>
+<Tag id="86">
+<Addr>00311</Addr>
+<Len>01</Len>
+<Type>1</Type>
+<DataType>1</DataType>
+</Tag>
+<Tag id="87">
+<Addr>00312</Addr>
+<Len>01</Len>
+<Type>1</Type>
+<DataType>1</DataType>
+</Tag>
+<Tag id="88">
+<Addr>00313</Addr>
+<Len>01</Len>
+<Type>1</Type>
+<DataType>1</DataType>
+</Tag>
+<Tag id="89">
+<Addr>00314</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>5</DataType>
+</Tag>
+<Tag id="90">
+<Addr>00316</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>5</DataType>
+</Tag>
+<Tag id="91">
+<Addr>00318</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>5</DataType>
+</Tag>
+<Tag id="92">
+<Addr>00320</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>5</DataType>
+</Tag>
+<Tag id="93">
+<Addr>00322</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>5</DataType>
+</Tag>
+<Tag id="94">
+<Addr>00324</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>5</DataType>
+</Tag>
+<Tag id="95">
+<Addr>00326</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>5</DataType>
+</Tag>
+<Tag id="96">
+<Addr>00328</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>5</DataType>
+</Tag>
+<Tag id="97">
+<Addr>00330</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>5</DataType>
+</Tag>
+<Tag id="98">
+<Addr>00332</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>5</DataType>
+</Tag>
+<Tag id="99">
+<Addr>00334</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>5</DataType>
+</Tag>
+<Tag id="100">
+<Addr>00336</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>5</DataType>
+</Tag>
+<Tag id="101">
+<Addr>00338</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>5</DataType>
+</Tag>
+<Tag id="102">
+<Addr>00340</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>5</DataType>
+</Tag>
+<Tag id="103">
+<Addr>00342</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>5</DataType>
+</Tag>
+<Tag id="104">
+<Addr>00344</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>5</DataType>
+</Tag>
+<Tag id="105">
+<Addr>00346</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>3</DataType>
+</Tag>
+<Tag id="106">
+<Addr>00348</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>3</DataType>
+</Tag>
+<Tag id="107">
+<Addr>00350</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>3</DataType>
+</Tag>
+<Tag id="108">
+<Addr>00352</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>3</DataType>
+</Tag>
+<Tag id="109">
+<Addr>00354</Addr>
+<Len>01</Len>
+<Type>1</Type>
+<DataType>1</DataType>
+</Tag>
+<Tag id="110">
+<Addr>00355</Addr>
+<Len>01</Len>
+<Type>1</Type>
+<DataType>1</DataType>
+</Tag>
+<Tag id="111">
+<Addr>00356</Addr>
+<Len>01</Len>
+<Type>1</Type>
+<DataType>4</DataType>
+</Tag>
+<Tag id="112">
+<Addr>00357</Addr>
+<Len>01</Len>
+<Type>1</Type>
+<DataType>4</DataType>
+</Tag>
+<Tag id="113">
+<Addr>00358</Addr>
+<Len>01</Len>
+<Type>1</Type>
+<DataType>4</DataType>
+</Tag>
+<Tag id="114">
+<Addr>00407</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>3</DataType>
+</Tag>
+<Tag id="115">
+<Addr>00409</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>3</DataType>
+</Tag>
+<Tag id="116">
+<Addr>00411</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>3</DataType>
+</Tag>
+<Tag id="117">
+<Addr>00413</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>3</DataType>
+</Tag>
+<Tag id="118">
+<Addr>00415</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>3</DataType>
+</Tag>
+<Tag id="119">
+<Addr>00417</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>3</DataType>
+</Tag>
+<Tag id="120">
+<Addr>00419</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>3</DataType>
+</Tag>
+<Tag id="121">
+<Addr>00421</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>3</DataType>
+</Tag>
+<Tag id="122">
+<Addr>00423</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>3</DataType>
+</Tag>
+<Tag id="123">
+<Addr>00425</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>3</DataType>
+</Tag>
+<Tag id="124">
+<Addr>00427</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>3</DataType>
+</Tag>
+<Tag id="125">
+<Addr>00429</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>3</DataType>
+</Tag>
+<Tag id="126">
+<Addr>00431</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>3</DataType>
+</Tag>
+<Tag id="127">
+<Addr>00433</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>3</DataType>
+</Tag>
+<Tag id="128">
+<Addr>00435</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>3</DataType>
+</Tag>
+<Tag id="129">
+<Addr>00437</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>3</DataType>
+</Tag>
+<Tag id="130">
+<Addr>00439</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>3</DataType>
+</Tag>
+<Tag id="131">
+<Addr>00441</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>3</DataType>
+</Tag>
+<Tag id="132">
+<Addr>00443</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>3</DataType>
+</Tag>
+<Tag id="133">
+<Addr>00445</Addr>
+<Len>02</Len>
+<Type>1</Type>
+<DataType>3</DataType>
+</Tag>
+<Tag id="134">
+<Addr>30000</Addr>
+<Len>01</Len>
+<Type>2</Type>
+<DataType>1</DataType>
+</Tag>
+<Tag id="135">
+<Addr>30000</Addr>
+<Len>01</Len>
+<Type>9</Type>
+<DataType>1</DataType>
+</Tag>
+</Device>

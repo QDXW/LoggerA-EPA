@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="RDS" />
+		<Option pch_mode="2" />
+		<Option compiler="armelfgcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="bin/Debug/RDS" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="armelfgcc" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+			</Target>
+			<Target title="Release">
+				<Option output="bin/Release/RDS" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release/" />
+				<Option type="1" />
+				<Option compiler="armelfgcc" />
+				<Compiler>
+					<Add option="-O2" />
+					<Add option="-lpthread" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add library="pthread" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+		</Compiler>
+		<Linker>
+			<Add library="pthread" />
+		</Linker>
+		<Unit filename="../Alarm/alarm.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../Alarm/alarmExtern.h" />
+		<Unit filename="../EnetPortPrs/Port_Fun.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../EnetPortPrs/Port_FunExtern.h" />
+		<Unit filename="../Ethernet/Ethernet.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../Ethernet/EthernetExtern.h" />
+		<Unit filename="../INI/libini.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../INI/libini.h" />
+		<Unit filename="../Main/PortType.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../Main/PortType.h" />
+		<Unit filename="../Main/PortTypeExtern.h" />
+		<Unit filename="../Main/main.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../Module/Module.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../Module/Module.h" />
+		<Unit filename="../SGCC/protocol.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../SGCC/protocol.h" />
+		<Unit filename="../SGCC/store.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../SGCC/store.h" />
+		<Unit filename="../TPMsgDef/TPMsgDef.h" />
+		<Unit filename="../ThreadPool/SPThread.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../ThreadPool/SPThread.h" />
+		<Unit filename="../ThreadPool/SPThreadExtern.h" />
+		<Unit filename="../ThreadPool/SPThreadPool.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../ThreadPool/SPThreadPool.h" />
+		<Unit filename="../ThreadPool/SPThreadPoolExtern.h" />
+		<Unit filename="../XML/xml.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../XML/xml.h" />
+		<Unit filename="../include/ConstDef.h" />
+		<Unit filename="../include/DataTypeDef.h" />
+		<Unit filename="../interface/common.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../interface/common.h" />
+		<Unit filename="../interface/exporthelper.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../interface/exporthelper.h" />
+		<Unit filename="../interface/interface.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../interface/interfaceExtern.h" />
+		<Unit filename="../interface/stringhelper.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../interface/stringhelper.h" />
+		<Unit filename="../interface/uart.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../interface/uartExtern.h" />
+		<Unit filename="../protocal/ProtocolDef.h" />
+		<Unit filename="../protocal/ProtocolExtern.h" />
+		<Unit filename="../protocal/Tool.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../protocal/ToolExtern.h" />
+		<Extensions>
+			<code_completion />
+			<debugger />
+			<envvars />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>
