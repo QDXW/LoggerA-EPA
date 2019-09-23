@@ -113,7 +113,7 @@ typedef	unsigned long long UINT64;
 //#define AlarmInfoAddr             0x067D   //1661-3260  1600Byte745
 #define AlarmInfoAddr               0x0745
 
-#define SYS_OAM_VERSION             0xA11772 //°æ±¾ºÅ
+#define SYS_OAM_VERSION             0xA11773 //°æ±¾ºÅ
 #define SYS_DEBUG_VERSION           0x0002   //debug°æ±¾ºÅ
 #define SYS_FRAME_LEN               256
 #define MAXDEVICE                   41
