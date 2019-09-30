@@ -113,7 +113,7 @@ typedef	unsigned long long UINT64;
 //#define AlarmInfoAddr             0x067D   //1661-3260  1600Byte745
 #define AlarmInfoAddr               0x0745
 
-#define SYS_OAM_VERSION             0xA11773 //版本号
+#define SYS_OAM_VERSION             0xA11774 //版本号
 #define SYS_DEBUG_VERSION           0x0002   //debug版本号
 #define SYS_FRAME_LEN               256
 #define MAXDEVICE                   41
@@ -598,7 +598,7 @@ void PlcIni();
 
 
 void HandleYT(UINT8 *Msg);//根据下发数据设置YT到对应寄存器
-void SouthCmdTask(UINT8 *aSendBuf,UINT8 aSendLen,UINT8 *aRecvBuf,UINT8 uDeviceId);//遥调南向收发
+int SouthCmdTask(UINT8 *aSendBuf,UINT8 aSendLen,UINT8 *aRecvBuf,UINT8 uDeviceId);//遥调南向收发
 
 
 void SouthQueryTask(UINT8 *Msg,UINT8 uLen);

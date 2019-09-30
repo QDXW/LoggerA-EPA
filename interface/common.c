@@ -1487,7 +1487,7 @@ void *LocalThread()
 
     int nDay=0;
     UINT8 nCurrentLoopFlag=0;
-    UINT8 nMinDelay=5,nOldMinDelay=0;
+    UINT32 nMinDelay = 5,nOldMinDelay = 0;
     UINT16 nFPGAValue=0;
     UINT8 crc_error_count=0;
     UINT8 DeviceCountBuf=0;
@@ -1507,9 +1507,12 @@ void *LocalThread()
             sleep(1);
             continue;
         }
-        while(gUpdataModeFlag==1)/*处于升级模式的时候,等待升级完成*/
+        while(gUpdataModeFlag == 1)/*处于升级模式的时候,等待升级完成*/
         {
             sleep(1);
+            nMinDelay = time((time_t *)NULL);
+			nOldMinDelay = nMinDelay - 210;
+			gMBQueryDeviceCountBuf = 41;
             continue;
         }
         if((gConnectDeviceNum>40)||(gConnectDeviceNum==0))/*连接设备大于40或者0时,进行循环等待设备数量正常*/
@@ -1517,25 +1520,14 @@ void *LocalThread()
             sleep(1);
             continue;
         }
-        /*MODEM未初始化或者有线模式下,等待*/
-        /*if((gModuleChannel0InitFlag!=2)&&(gSocketMode==1)&&(gModemConnectFlag==0)&&(gPlatformDisConnect==0))
-        {
-            sleep(1);
-            continue;
-        }*/
-        //printf("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&---------%d\r\n",gMBQueryDeviceCountBuf+1);
         memset(gMBRecvBuf,0,sizeof(gMBRecvBuf));/*清空南向数据缓存*/
-        //printf("2!!\r\n");
-        //printf("gDeviceInfo[%d].nInUse = %d\r\n", gMBQueryDeviceCountBuf,
-               //gDeviceInfo[gMBQueryDeviceCountBuf].nInUse);
-        if((gTypeGroupPointMB==NULL)||(gDeviceInfo[gMBQueryDeviceCountBuf].nInUse==0))
+        if((gTypeGroupPointMB==NULL)||(gDeviceInfo[gMBQueryDeviceCountBuf].nInUse==0)/* || (NextDevice == 1)*/)
         {
             gMBQueryDeviceCountBuf++;
             if(gYXChangeCount!=0)
                 SendChangeBuf(2);
             if(gYCChangeCount!=0)
                 SendChangeBuf(1);
-            //printf("2.1.2!!\r\n");
             if((gMBQueryDeviceCountBuf>40))/*本次轮询,最后一台设备查询完毕*/
             {
                 gMBQueryDeviceCountBuf=0;
@@ -1543,25 +1535,16 @@ void *LocalThread()
                 gPointTablePossessFlag&=~(1<<2);
                 do{
                     sleep(1);
-                    time(&timedelay);
-                    pTime=gmtime(&timedelay);
-                    nMinDelay=pTime->tm_min;
-                    //printf("time = %d   old = %d\r\n",nMinDelay,nOldMinDelay);
-                }while((abs(nMinDelay-nOldMinDelay))<5);
+                    nMinDelay = time((time_t *)NULL);
+
+                }while((abs(nMinDelay-nOldMinDelay)) < 300);
                 gPointTablePossessFlag|=(1<<2);
-                //ReloadAlarmFile();
-                    //}while(nMinDelay==nOldMinDelay);
                 nOldMinDelay = nMinDelay;
                 continue;
             }
-            //printf("2.1!!\r\n");
             gTypeGroupPointMB=gTypeHead;
             while(gTypeGroupPointMB!=NULL)
             {
-                //DbgPrintf("Group Type ID = %d Device Type ID = %d\r\n",gTypeGroupPointMB->nTypeID,gDeviceInfo[gMBQueryDeviceCountBuf].nType);
-
-                //LogApartWriteLog(TEXT,"Group Type ID = %d Device Type ID = %d\r\n",gTypeGroupPointMB->nTypeID,gDeviceInfo[gMBQueryDeviceCountBuf].nType);
-
                 if(gTypeGroupPointMB->nTypeID != gDeviceInfo[gMBQueryDeviceCountBuf].nType)//*点表的类型与设备点表类型不一致*/
                     gTypeGroupPointMB = gTypeGroupPointMB->pNext;
                 else
@@ -1649,7 +1632,7 @@ void *LocalThread()
         do{
             if(pTypeParaTemp==NULL)
                 break;
-            /*寄存器长度超过2个寄存器或者类型为遥控的需要跳过该信号点*/
+            /*寄存器长度超过2个寄存器或者类型为遥控或设点的需要跳过该信号点*/
             if(((pTypeParaTemp->nLen)>2)||(pTypeParaTemp->nType==Type_104_YK) || (pTypeParaTemp->nType==Type_104_SD))
             {
                 /*如果不为点表最后一个信号点*/
@@ -1678,7 +1661,8 @@ void *LocalThread()
             }
             /*数据长度超长*/
             if((pTypeParaTemp->nLen*2+nLen*2+4)>256)
-                break;
+				break;
+
             /*计算本次查询的寄存器长度*/
             nLen=nLen+pTypeParaTemp->nLen;
             if(pTypeParaTemp->pNext!=NULL)
@@ -1692,6 +1676,7 @@ void *LocalThread()
             }
             pTypeParaTemp=pTypeParaTemp->pNext;
         }while((nLen*2+4)<256);
+
         if(nLen==0)
         {
             pthread_mutex_unlock(&Uartsem);
@@ -1718,8 +1703,6 @@ void *LocalThread()
         aSendBuf[3]=nMBAddr;
         aSendBuf[4]=nLen/256;
         aSendBuf[5]=nLen%256;
-        //aSendBuf[0]=aSendBuf[0]+40*(gMainDeviceID-1);
-        //DEBUG("[80-Local]MainDeviceID is %d \r\n",gMainDeviceID);
         /*计算CRC*/
         nCRC = CRC16(aSendBuf,6);
         //nCRC = 0;
@@ -1737,14 +1720,12 @@ void *LocalThread()
             DbgPrintf("%02X ",aSendBuf[i]);
         }											//repair point
         DbgPrintf("\r\n");
-        //usleep(1000);
 
         writeDev(nUartFd,aSendBuf,8);//*发送数据至COM*/
         usleep(100);
         GPIOSet(2,19,0);//*变更链路为接收模式*/
         usleep(500000);
         nRecvLen=readDev(nUartFd,gMBRecvBuf);//*从COM接收数据*/
-//        usleep(1000);
         pthread_mutex_unlock(&Uartsem);
         //判断查回数据是否符合要求
         if(/*((gMBRecvBuf[1]&0x80)!=0)||*/((gMBRecvBuf[1] != 0x83) && (gMBRecvBuf[1] != 0x84)
@@ -1759,14 +1740,13 @@ void *LocalThread()
             UINT8 nErrorCount;
             time(&timep);
             pTime=gmtime(&timep);
-//            printf("时间1：%d-%d-%d %d:%d:%d\n",pTime->tm_year+1900,pTime->tm_mon,pTime->tm_mday,pTime->tm_hour,pTime->tm_min,pTime->tm_sec);
             //*加入告警列表*/
             nErrorCount = ((pTime->tm_hour == 0 && pTime->tm_min >= 0 && pTime->tm_min < 5) ||
             		(pTime->tm_hour == 23 && pTime->tm_min > 55 && pTime->tm_min <= 59))?
             		nErrorCount:AlarmAdd(gMBQueryDeviceCountBuf,Alarm_Link_Error,0,0);
 
             DbgPrintf("Alarm----------Downlink Device No.%02d Error Count = %d\r\n",gMBQueryDeviceCountBuf,nErrorCount);
-            /*如果异常次数达到三次以上*/
+            /*如果异常次数达到10次以上*/
             if(nErrorCount>ALARM_SCANF_MAXNUMBER)
             {
                 gTypeGroupPointMB=NULL;
@@ -1810,7 +1790,6 @@ void *LocalThread()
             if(((nCRC&0x00FF)!=gMBRecvBuf[nRecvLen-2]) || (((nCRC>>8)&0x00FF)!=gMBRecvBuf[nRecvLen-1]))
             {
                 crc_error_count++;
-                //printf("485 received data crc correction error!\n\n\n\n");
                 if(gTypeParamPointMB->pNext==NULL)
                 {
                     if((gDeviceAlarmBuf[(gMBQueryDeviceCountBuf-1)/8]>>((gMBQueryDeviceCountBuf-1)%8))&0x01)
@@ -1841,8 +1820,8 @@ void *LocalThread()
             UINT32 nValueTemp=0;
             UINT8 nPointCount=0,nAlarmPointCount=0;
 
-            //printf("Len = %d   len=%d addr=0x%X Type=%d\r\n",nRecvLen,nLen,gTypeParamPointMB->nMBAddr,gTypeParamPointMB->nType);
-            if(((gTypeParamPointMB->nLen)>2)||(gTypeParamPointMB->nType==Type_104_YK))/*/信号点寄存器超过2个长度或者信号点类型为遥控*/
+//            printf("Len = %d   len=%d addr=0x%X Type=%d\r\n",nRecvLen,nLen,gTypeParamPointMB->nMBAddr,gTypeParamPointMB->nType);
+            if(((gTypeParamPointMB->nLen)>2)||(gTypeParamPointMB->nType==Type_104_YK) || (gTypeParamPointMB->nType==Type_104_SD))/*/信号点寄存器超过2个长度或者信号点类型为遥控*/
             {
                 gTypeParamPointMB=gTypeParamPointMB->pNext;
                 continue;
@@ -1864,11 +1843,10 @@ void *LocalThread()
                 {
                     nValueTemp=nValueTemp+(gMBRecvBuf[3+nCount]<<(8*((gTypeParamPointMB->nLen-i)*2-1)))
                                          +(gMBRecvBuf[3+nCount+1]<<(8*((gTypeParamPointMB->nLen-i)*2-1-1)));
-                    /*nValueTemp=nValueTemp+(gMBRecvBuf[3+nCount]<<(8*((i+1)*2-1-1)))
-                                         +(gMBRecvBuf[3+nCount+1]<<(8*((i+1)*2-1)));*/
                     nCount=nCount+2;
                 }
             }
+
             /*通过设备各自104起始地址和所处的偏移量计算本信号点在104点表中的位置*/
             pTypeParaTemp=gTypeGroupPointMB->pParamNext;
             while(pTypeParaTemp!=gTypeParamPointMB)
@@ -1931,14 +1909,6 @@ void *LocalThread()
 
                     nDataAddr=(gDeviceInfo[gMBQueryDeviceCountBuf].nYCAddr+nPointCount);
                     /*对有符号数负数进行特殊处理*/
-                    /*if(gTypeParamPointMB->nDataType==Type_Data_FLOAT)
-                        {
-                            nDataTemp=nValueTemp;
-                        }
-                    else
-                        {
-                            uIE.nIndex=nValueTemp;
-                        }*/
                     if(gTypeParamPointMB->nDataType==Type_Data_INT16)
                     {
                         if((nValueTemp&0x8000)!=0)
@@ -2004,15 +1974,8 @@ void *LocalThread()
                         break;
                     }
                     nDataAddr=gDeviceInfo[gMBQueryDeviceCountBuf].nDDAddr+nPointCount;
-                    /*if(nValueTemp!=aPointBuf[nDataAddr].nPreValue)
-                    {
-                        //printf("YX add MB addr =%d    prevalue = %d  value = %d\r\n",gTypeParamPointMB->nMBAddr,aPointBuf[nDataAddr].nPreValue,nValueTemp);
-                        AddChangeBuf(2,nDataAddr,nValueTemp);
-                    }*/
                     if(gTypeParamPointMB->nDataType == Type_Data_FLOAT)
                     {
-                        //memcpy(uIE.nChar,(UINT8 *)&nValueTemp,4);
-                        //nValueTemp = (UINT32)uIE.nIndex;
                         uIE.nIndex= nValueTemp;               //2019.1.28 Andre
                     }
                     aPointBuf[nDataAddr].nPreValue=nValueTemp;
@@ -2052,9 +2015,6 @@ void *LocalThread()
                         }
                         E2promWrite((UINT8 *)&aAlarmInfo[gMBQueryDeviceCountBuf-1][nAlarmPointCount],AlarmInfoAddr+((gMBQueryDeviceCountBuf-1)*20+nAlarmPointCount)*2,2);
                     }
-                        //AlarmDLDevice(gMBQueryDeviceCountBuf+1,gTypeParamPointMB->nMBAddr,aPointBuf[nDataAddr].nPreValue,nValueTemp);
-                        //printf("YX add MB addr =%d    prevalue = %d  value = %d\r\n",gTypeParamPointMB->nMBAddr,aPointBuf[nDataAddr].nPreValue,nValueTemp);
-                        //AddChangeBuf(3,nDataAddr,aPointBuf[nDataAddr].nPreValue,nValueTemp);
                     break;
                 }
             }
@@ -2097,7 +2057,7 @@ void *SouthUpdatethread()
 		   gUpdataModeFlag = 1;
 		   SouthBroadcastUpdata();
 		   gUpdataModeFlag = 0;
-		   sleep(30);
+		   sleep(50);
 		   SouthDiscovery();//自发现查询，判断版本号是否变更，
 		   gUpdataModeFlag = 1;
 		   SouthSingleUpdata();//执行单播升级
@@ -2131,7 +2091,8 @@ void SouthBroadcastUpdata(void)
 	//====================================================================================
 	//先广播升级文件信息
 	//====================================================================================
-	DbgPrintf("UPDATA BROST MESSAGE!!!\n");
+	DbgPrintf("UPDATA BROST MESSAGE !!!\n");
+
 
 	memset(uTmpData,0,256);
 
@@ -2168,7 +2129,6 @@ void SouthBroadcastUpdata(void)
 	for(s_uSendseq=0;(s_uSendseq*uFrameLen) < gDt1000Update.nDataLen;s_uSendseq++)
 	{
 		memset(uTmpData,0,256);
-
 		uTmpData[0] = 0xFF;
 		uTmpData[1] = 0x2C;
 		uTmpData[2] = 0x01; 	 //子功能码升级0x01
@@ -2476,10 +2436,15 @@ void SouthSingleUpdata(void)
 						uCrc = CRC16(uTmpData,uReadDataLen+6);
 						uTmpData[uReadDataLen+6]=uCrc&0XFF;
 						uTmpData[uReadDataLen+7]=uCrc>>8;
-
-						SouthCmdTask(uTmpData,uReadDataLen+8,uRecBuffer,gDeviceInfo[i].nDownlinkPort);
-
-						DbgPrintf("\r\nSigle Upgrade %d Frame  DataLen:%d\r\n",s_uSendseq,uReadDataLen);
+						if(SouthCmdTask(uTmpData,uReadDataLen+8,uRecBuffer,gDeviceInfo[i].nDownlinkPort) > 0)
+						{
+							DbgPrintf("\r\nSigle Upgrade %d Frame  DataLen:%d\r\n",s_uSendseq,uReadDataLen);
+						}
+						else
+						{
+							DbgPrintf("\r\nSigle Upgrade Fail %d Frame  DataLen:%d\r\n",s_uSendseq,uReadDataLen);
+							break;
+						}
 					}
 					sleep(1);
 				}
@@ -2831,29 +2796,8 @@ void *ScanfDeviceThread()
     UINT8 uDeviceCharacter2[100];//设备ESN号+固件号
     UINT8 uDownLinkDeviceLen=0;
 
-    //PlcIni();
-    //memset(sPlcInfoBuf,0,sizeof(sPlcInfoBuf));
     memset(uDeviceCharacter1,0,sizeof(uDeviceCharacter1));
     memset(uDeviceCharacter2,0,sizeof(uDeviceCharacter2));
-    /*sPlcInfoBuf[0].nDownlinkPort=1;//249
-    sPlcInfoBuf[1].nDownlinkPort=2;//250
-
-    while(1)
-        {
-            if(((gSocketMode == SOCKETMODE_LAN) && (g_nRemotesockfd > 0))
-               ||((gSocketMode == SOCKETMODE_3G) && (gModuleChannel0InitFlag == MODEMFLAG_CONNECT_SERVER)))
-            {
-                PlcAlarmEraseSend(0);
-                PlcAlarmEraseSend(1);
-                break;
-            }
-            else
-                {
-                    DEBUG("[PLC]NetWork is not Ready\r\n");
-                    sleep(5);
-                }
-        }
-        */
     while(1)
     {
         while(gDt1000UpdataFlag==1)/*处于升级模式的时候,等待升级完成*/
@@ -2870,15 +2814,6 @@ void *ScanfDeviceThread()
             UINT8 aDownLinkDevice[MAXDEVICE][256];
             UINT8 nExistsDevice=0,nErrorCount=0,nAddDeviceCount=1;
 
-            /****PLC Detect Start 2017.12.29 lj*****/
-            // FPGA 为 1 对应COM1   非1 对应COM2
-            //DEBUG("[PLC]Start PLC Device Detect \r\n");
-
-            //PlcScanDev(0,uDeviceCharacter1);//COM2
-            //PlcScanDev(1,uDeviceCharacter2);//COM1
-           // DEBUG("[PLC]End PLC Device Detect \r\n");
-            /****PLC Detect Endt 2017.12.29 lj*****/
-
             memset(aDeviceInfoBuf,0,sizeof(aDeviceInfoBuf));
             memset(aDownLinkDevice,0,sizeof(aDownLinkDevice));
             nConnectStatus=1;
@@ -2891,7 +2826,7 @@ void *ScanfDeviceThread()
 				if(gDt1000UpdataFlag==1)
 					break;
 
-                //printf("\r\n[DeviceScanf]nNewDeviceFlag=%d,nExistsDevice=%d,gConnectDeviceMaxNum=%d\r\n",nNewDeviceFlag,nExistsDevice,gConnectDeviceMaxNum);
+//                printf("\r\n[DeviceScanf]nNewDeviceFlag=%d,nExistsDevice=%d,gConnectDeviceMaxNum=%d\r\n",nNewDeviceFlag,nExistsDevice,gConnectDeviceMaxNum);
                 if((nNewDeviceFlag+nExistsDevice)>=gConnectDeviceMaxNum)
                     break;
                 if(gDeviceInfo[i].nInUse)
@@ -2924,8 +2859,6 @@ void *ScanfDeviceThread()
                     }while((FpgaRead(0x03))!=nFPGAValue);
 
                     aSendBuf[0] = i; /** 二级地址 */
-                    //aSendBuf[0]=aSendBuf[0]+40*(gMainDeviceID-1);
-                    //DEBUG("[80-2B]MainDeviceID is %d \r\n",gMainDeviceID);
                     nCRC=CRC16(aSendBuf,6);
                     aSendBuf[6] = (UINT8)nCRC;
                     aSendBuf[7] = (UINT8)(nCRC>>8);
@@ -2962,15 +2895,6 @@ void *ScanfDeviceThread()
                     }
                     aDeviceInfoBuf[i].nDownlinkPort=2-j;
                     memset((UINT8 *)&aDownLinkDevice[i],0,256);
-                   /* if(aRecvBuf[6]==0x87)
-                    {
-                        memcpy((UINT8 *)&aDownLinkDevice[i],(UINT8 *)&aRecvBuf[13],aRecvBuf[12]);
-                    }
-                    else
-                    {
-                        memcpy((UINT8 *)&aDownLinkDevice[i],(UINT8 *)&aRecvBuf[10],aRecvBuf[9]);
-                        uDownLinkDeviceLen=aRecvBuf[9];
-                    }*/
 
 				    memcpy((UINT8 *)&aDownLinkDevice[i],(UINT8 *)&aRecvBuf[11],aRecvBuf[10]);
 					uDownLinkDeviceLen=aRecvBuf[10];   //discory len
@@ -3018,7 +2942,6 @@ void *ScanfDeviceThread()
                     {
                         DbgPrintf("[SOFTVERSION]Old SoftVersion: %s\r\n", gDeviceInfo[i].aSofeVersion);
                         DbgPrintf("[SOFTVERSION]New SoftVersion: %s\r\n", aDeviceInfoBuf[i].aSofeVersion);
-                       // SendFrameToPlatform(i,UPLOAD_HW_DEVICE_CMD,S_R_InfoReport,(UINT8 *)&aDownLinkDevice[i],uDownLinkDeviceLen);
                         SendSofeVersionToPlatform(i,UPLOAD_HW_DEVICE_CMD,S_R_InfoReport,(UINT8 *)&aDownLinkDevice[i],uDownLinkDeviceLen);
                         memcpy(gDeviceInfo[i].aSofeVersion,aDeviceInfoBuf[i].aSofeVersion,sizeof(aDeviceInfoBuf[i].aSofeVersion));
                         TagBaseFileWrite();
@@ -3095,8 +3018,6 @@ void *ScanfDeviceThread()
                             memcpy((UINT8 *)&gDeviceInfoBuf[i],(UINT8 *)&aDeviceInfoBuf[i],sizeof(sDeviceInfo));
                         gDeviceInfoBuf[i].nInUse=0;
                     }
-                    //PlcC7SendtoPlatform();
-                    //DEBUG("[PLC]Send PLC C7 to Platform , then C5 after\r\n");
                     SendSingleFrameToPlatform(0xC5,0x008C,0x01);
                     load_point_table_flag = 1;
                 }

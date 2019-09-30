@@ -51,7 +51,7 @@ extern UINT16 dSouth_Record_Information;
 
 extern UINT8 g_import_file_path[50];
 
-extern void SouthCmdTask(UINT8 *aSendBuf,UINT8 aSendLen, UINT8 *aRecvBuf,UINT8 uDeviceId);
+extern int SouthCmdTask(UINT8 *aSendBuf,UINT8 aSendLen, UINT8 *aRecvBuf,UINT8 uDeviceId);
 extern void DriverInit(void);
 extern UINT8 SysNetInit(void);
 extern void LedSet(UINT8 nBus,UINT16 nStatus);

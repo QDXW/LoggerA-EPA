@@ -72,6 +72,7 @@ void InitDeviceIecInfo(void)
 			typeGroupPoint=gTypeHead;
             while(typeGroupPoint!=NULL)
             {
+
                 if(typeGroupPoint->nTypeID!=gDeviceInfo[k].nType)
                     typeGroupPoint=typeGroupPoint->pNext;
                 else
@@ -86,7 +87,6 @@ void InitDeviceIecInfo(void)
             }
 
 			typeParamPoint=typeGroupPoint->pParamNext;
-
 			gDeviceiec104Info[k].uInuse=1;
 			gDeviceiec104Info[k].deviceID=k;
 			while(NULL!=typeParamPoint)

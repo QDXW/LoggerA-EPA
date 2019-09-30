@@ -53,20 +53,20 @@ struct sSocketRecvBuf
 
 typedef struct
 {
-    UINT8 nInUse;/** 0:设备不可用 1：设备可用*/
-    UINT8 nEndian;/** 大小端, 1:小端 0:大端 */
-    UINT16 nPointTableNo; /** 电表编号 */
+    UINT8 nInUse;				/** 0:设备不可用 1：设备可用*/
+    UINT8 nEndian;				/** 大小端, 1:小端 0:大端 */
+    UINT16 nPointTableNo; 		/** 电表编号 */
     UINT16 nType;
     UINT16 nYXAddr;
     UINT16 nYCAddr;
     UINT16 nYKAddr;
     UINT16 nSDAddr;
     UINT16 nDDAddr;
-    UINT32 nRate;   /** 传输波特率 */
-    UINT8 aESN[21]; /** 设备ESN号 */
-    UINT8 nProtocolType;/** 协议类型, 1:华为MODBUS 0:标准MODBUS */
-    UINT8 nDownlinkPort;/** 设备连接到数采的COM口, 1代表COM1, 2代表COM2*/
-    UINT8 aSofeVersion[21];//逆变器软件版本号
+    UINT32 nRate;   			/** 传输波特率 */
+    UINT8 aESN[21]; 			/** 设备ESN号 */
+    UINT8 nProtocolType;		/** 协议类型, 1:华为MODBUS 0:标准MODBUS */
+    UINT8 nDownlinkPort;		/** 设备连接到数采的COM口, 1代表COM1, 2代表COM2*/
+    UINT8 aSofeVersion[21];		//逆变器软件版本号
 }sDeviceInfo,*ptrsDeviceInfo;
 
 

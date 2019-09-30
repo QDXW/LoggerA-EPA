@@ -689,10 +689,8 @@ void *ModuleThreadMasterChannel()
             return 0;
         }
 
-
         while(gSocketMode == 1)
         {
-            //gModemRecvFlag=0;
             gIsReportInfo = _NO;
             if(ModuleInit(MI_START,0,0)==0)
                 break;

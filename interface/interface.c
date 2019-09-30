@@ -1541,8 +1541,6 @@ void TotalCallPacket()
                 {
                     break;
                 }
-                //if(aPointBuf[0x0001+i].nStatus==1)
-                //    continue;
                 nAddrTemp=0x0001+i;
                 memcpy((UINT8 *)&aBuf[6+(i-gYXPointCount)*4],(UINT8 *)&nAddrTemp,2);
                 memcpy((UINT8 *)&aBuf[6+(i-gYXPointCount)*4+3],(UINT8 *)&aPointBuf[0x0001+i].nValue,1);
@@ -1552,12 +1550,6 @@ void TotalCallPacket()
             }
             aBuf[1]=nPointCount;
             TestLogTimeFileWrite();
-            if(gSocketMode==0)
-                TestLogTypeFileWrite(2);
-            else
-                TestLogTypeFileWrite(6);
-            TestLogStringFileWrite((void *)"I Frame ",strlen("I Frame "));
-            TestLogStringFileWrite((void *)"Upload CallBack YX Information\n",strlen("Upload CallBack YX Information\n"));
             if(nPointCount!=0)
                 FramePacketSend(aBuf,6+4*(i-gYXPointCount));
             gYXPointCount=i;
@@ -1583,8 +1575,6 @@ void TotalCallPacket()
                 {
                     break;
                 }
-                //if(aPointBuf[0x4001+i].nStatus==1)
-                 //   break;
                 memcpy((UINT8 *)&aBuf[9+(i-gYCPointCount)*5],(UINT8 *)&aPointBuf[0x4001+i].nValue,4);
                 //printf("YCCCCCC  addr =   %d   value = %d\r\n",0x4001+i,aPointBuf[0x4001+i].nPreValue);
                 aBuf[9+(i-gYCPointCount)*5+4]=0;
@@ -2687,6 +2677,7 @@ UINT8 PackMainFunction(UINT8 nProtocol,UINT8 *aBuf,UINT8 nLen)
             }
             break;
         }
+
         case POINT_LOAD_CMD:/**0xBB 点表导入（自动导表） */
         {
             UINT16 nValue;
@@ -2735,7 +2726,6 @@ UINT8 PackMainFunction(UINT8 nProtocol,UINT8 *aBuf,UINT8 nLen)
                         TypeParamAdd(0,nAddr,nParaLen,nParaType,nDataType);
                         nParamCount += 5;
                     }
-                    TestLogStringFileWrite((void *)"Get Point Table Information From Platform\n",strlen("Get Point Table Information From Platform\n"));
                     break;
                 }
                 case 0x8A:/** 传输原因： 导入设备信息 */
@@ -2758,8 +2748,8 @@ UINT8 PackMainFunction(UINT8 nProtocol,UINT8 *aBuf,UINT8 nLen)
                         memcpy((UINT8 *)&gDeviceInfoBuf[nDeviceID].nDDAddr,(UINT8 *)&SendBuf[nDeviceCount+13],2);
                         gDeviceInfoBuf[nDeviceID].nInUse=1;
                         nDeviceCount +=15;
+                        DbgPrintf("nType:%d  nPointTableNo:%d  nDeviceID:%d\n",gDeviceInfoBuf[nDeviceID].nType,gDeviceInfoBuf[nDeviceID].nPointTableNo,nDeviceID);
                     }
-                    TestLogStringFileWrite((void *)"Get Device 104 Information From Platform\n",strlen("Get Device 104 Information From Platform\n"));
                     break;
                 }
             }
@@ -2977,11 +2967,11 @@ UINT8 PackMainFunction(UINT8 nProtocol,UINT8 *aBuf,UINT8 nLen)
             }
             break;
         }
+
         case DEVICE_BASE_INFO_CMD:/** 0xC0 设备基本信息 */
         {
             UINT16 nValue;
             UINT32 nVersion;
-            //InitialLoggerInf();
             if(sMessage.mASDU.nSendFlag==S_R_Query)
             {
                 DbgPrintf("TTT C0: Read Device Basic Information with %02X\r\n", S_R_Query);
@@ -3006,7 +2996,6 @@ UINT8 PackMainFunction(UINT8 nProtocol,UINT8 *aBuf,UINT8 nLen)
             {
                 if(gMainDeviceStatus!=DEVSTATUS_NEW_DEVICE)
                 {
-                //SendSingleFrameToAPP(0xC3,0x008B,0x04);
                     if(gDeviceStationBuild<4)
                     {
                         SendBuf[1]=73;
@@ -3234,13 +3223,15 @@ UINT8 PackMainFunction(UINT8 nProtocol,UINT8 *aBuf,UINT8 nLen)
                         AP_Send(SendBuf,16);
                     }
                     AlarmDeleteAll();
-                    TestLogStringFileWrite((void *)"Download Point Table Finish\n",strlen("Download Point Table Finish\n"));
                     SendSFramePacket();
                     memcpy(gDeviceInfo,gDeviceInfoBuf,sizeof(gDeviceInfo));
                     memset(gDeviceInfoBuf,0,sizeof(gDeviceInfoBuf));
                     TagBaseFileWrite();
                     TagInfoFileWrite();
-                    InitDeviceIecInfo();
+
+					DLinkParamGet();
+					ReadPointTableFile();
+					InitDeviceIecInfo();
 
                     gTypePointClearFlag=1;
                 }
@@ -3493,6 +3484,7 @@ UINT8 PackMainFunction(UINT8 nProtocol,UINT8 *aBuf,UINT8 nLen)
                     memcpy(&logFileFixedLenData[2],(UINT8 *)&nValue,2);
                     nValue=gRecvCount*2;
                     memcpy(&logFileFixedLenData[4],(UINT8 *)&nValue,2);
+                    logFileFixedLenData[8] = S_R_DataTrans;
 
                     //build package sequence number
                     logFileFixedLenData[12] = SendBuf[15];
@@ -4680,7 +4672,6 @@ UINT8 PackMainFunction(UINT8 nProtocol,UINT8 *aBuf,UINT8 nLen)
                                 g_export_file_path, total_file_length);
                             //reset frame number
                             export_package_serial_num= 0;
-                            gUpdataModeFlag = 1;
                         }
                         else
                         {
@@ -4798,7 +4789,6 @@ UINT8 PackMainFunction(UINT8 nProtocol,UINT8 *aBuf,UINT8 nLen)
                 	UINT8  data_temp[FIXED_LENGTH];
                 	UINT16 rCRC;
                 	UINT8  file_whole_frame[SYS_FRAME_LEN] = {0};      //APDU packet: fixed data + customized data + CRC
-
 					if((dSouth_Record_Information && 0xFF) && (dSouth_Record_Information && 0xFF) < 32)	//高八位Modbus地址  低八位本月日期
 					{
 						data_temp[0] = (dSouth_Record_Information&0xFF00)>>8;
@@ -4847,7 +4837,6 @@ UINT8 PackMainFunction(UINT8 nProtocol,UINT8 *aBuf,UINT8 nLen)
 							if(CRCErrcount > 2)
 							{
 								dSouth_Record_Information = 0;
-								gUpdataModeFlag=0;
 							}
 							DbgPrintf("CRC Inspection failure!!!\r\n");
 						}
@@ -4861,6 +4850,7 @@ UINT8 PackMainFunction(UINT8 nProtocol,UINT8 *aBuf,UINT8 nLen)
 					UINT8  file_data[SYS_FILES_LEN] = {0};             //customized data: 200 bytes
 					UINT8  data_temp[FIXED_LENGTH];
 					UINT16 rCRC;
+
                 	if(SendBuf[1] == 0x10 && dSouth_Record_Information)
                 	{
 						data_temp[0] = (dSouth_Record_Information&0xFF00)>>8;
@@ -4916,7 +4906,6 @@ UINT8 PackMainFunction(UINT8 nProtocol,UINT8 *aBuf,UINT8 nLen)
 								if(CRCErrcount > 2)
 								{
 									dSouth_Record_Information = 0;
-									gUpdataModeFlag=0;
 								}
 								DbgPrintf("CRC Inspection failure -- send package %d!!!\r\n",export_package_serial_num);
 								export_package_serial_num--;
@@ -4984,92 +4973,92 @@ UINT8 PackMainFunction(UINT8 nProtocol,UINT8 *aBuf,UINT8 nLen)
                         break;
                     }
 
-                    //import file
-                    if(SendBuf[1] >= 0x12)
-                    {
-                        UINT8  file_data_temp[255];
-                        UINT32 import_package_serial_num_temp = 0;
-                        UINT16 crc, crc_reference;
-                        crc = CalculateCRC((void *)&SendBuf[15], nLen - 17);
-                        memcpy((UINT8 *)&crc_reference, (UINT8 *)&SendBuf[nLen-2], 2);
-                        if(crc != crc_reference)
-                        {
-                            SendBuf[1] = 0x10;
-                            nValue = gSendCount *2;
-                            memcpy(&SendBuf[2],(UINT8 *)&nValue, 2);
-                            nValue = gRecvCount *2;
-                            memcpy(&SendBuf[4],(UINT8 *)&nValue, 2);
-                            SendBuf[8] = 0x83;
-                            SendBuf[12] = 0x01;
-                            SendBuf[13] = 0x00;
-                            SendBuf[14] = 0x00;
-                            import_package_serial_num_temp = import_package_serial_num + 1;
-                            memcpy((UINT8 *)&SendBuf[15], (UINT8 *)&import_package_serial_num_temp, 3);
-                            Socket_Send(SendBuf, 18);
-                            DbgPrintf("[FILE DOWNLOAD] TRANSMISSION FAIL---crc check fail, retransmission package %d\n",
-                                import_package_serial_num_temp);
-                        }
-                        else
-                        {
-                            memset(file_data_temp, 0, sizeof(file_data_temp));
-                            SendBuf[1] = 0x10;
-                            nValue = gSendCount *2;
-                            memcpy(&SendBuf[2],(UINT8 *)&nValue, 2);
-                            nValue = gRecvCount *2;
-                            memcpy(&SendBuf[4],(UINT8 *)&nValue, 2);
-                            memcpy(file_data_temp, &SendBuf[15], nLen-17);
-                            SendBuf[15] = SendBuf[12];
+                	//import file
+					if(SendBuf[1] >= 0x12)
+					{
+						UINT8  file_data_temp[255];
+						UINT32 import_package_serial_num_temp = 0;
+						UINT16 crc, crc_reference;
+						crc = CalculateCRC((void *)&SendBuf[15], nLen - 17);
+						memcpy((UINT8 *)&crc_reference, (UINT8 *)&SendBuf[nLen-2], 2);
+						if(crc != crc_reference)
+						{
+							SendBuf[1] = 0x10;
+							nValue = gSendCount *2;
+							memcpy(&SendBuf[2],(UINT8 *)&nValue, 2);
+							nValue = gRecvCount *2;
+							memcpy(&SendBuf[4],(UINT8 *)&nValue, 2);
+							SendBuf[8] = 0x83;
+							SendBuf[12] = 0x01;
+							SendBuf[13] = 0x00;
+							SendBuf[14] = 0x00;
+							import_package_serial_num_temp = import_package_serial_num + 1;
+							memcpy((UINT8 *)&SendBuf[15], (UINT8 *)&import_package_serial_num_temp, 3);
+							Socket_Send(SendBuf, 18);
+							DbgPrintf("[FILE DOWNLOAD] TRANSMISSION FAIL---crc check fail, retransmission package %d\n",
+								import_package_serial_num_temp);
+						}
+						else
+						{
+							memset(file_data_temp, 0, sizeof(file_data_temp));
+							SendBuf[1] = 0x10;
+							nValue = gSendCount *2;
+							memcpy(&SendBuf[2],(UINT8 *)&nValue, 2);
+							nValue = gRecvCount *2;
+							memcpy(&SendBuf[4],(UINT8 *)&nValue, 2);
+							memcpy(file_data_temp, &SendBuf[15], nLen-17);
+							SendBuf[15] = SendBuf[12];
 							SendBuf[16] = SendBuf[13];
 							SendBuf[17] = SendBuf[14];
-                            memcpy((UINT8 *)&import_package_serial_num_temp, &SendBuf[12], 3);
-                            if((import_package_serial_num == 0xffffffff) && (import_package_serial_num_temp == 0))
-                            {
-                                import_package_serial_num = 0;
-                                memcpy((UINT8 *)&import_package_serial_num, &SendBuf[12], 3);
-                                FileWrite(n_file_fd, file_data_temp, nLen-17);
+							memcpy((UINT8 *)&import_package_serial_num_temp, &SendBuf[12], 3);
+							if((import_package_serial_num == 0xffffffff) && (import_package_serial_num_temp == 0))
+							{
+								import_package_serial_num = 0;
+								memcpy((UINT8 *)&import_package_serial_num, &SendBuf[12], 3);
+								FileWrite(n_file_fd, file_data_temp, nLen-17);
 
 								SendBuf[12] = 0x00;
-							    SendBuf[13] = 0x00;
-							    SendBuf[14] = 0x00;
-                                Socket_Send(SendBuf, 18);
-                                g_import_file_crc = 0;
-                                g_import_file_crc = CalculateFileCRC((void *)file_data_temp, nLen-17, 1);
-                                DbgPrintf("[FILE DOWNLOAD] TRANSMISSION---receive package %d\n", import_package_serial_num_temp);
-                            }
-                            else
-                            {
-                                if((import_package_serial_num+1) == import_package_serial_num_temp)
-                                {
-                                    FileWrite(n_file_fd, file_data_temp, nLen-17);
+								SendBuf[13] = 0x00;
+								SendBuf[14] = 0x00;
+								Socket_Send(SendBuf, 18);
+								g_import_file_crc = 0;
+								g_import_file_crc = CalculateFileCRC((void *)file_data_temp, nLen-17, 1);
+								DbgPrintf("[FILE DOWNLOAD] TRANSMISSION---receive package %d\n", import_package_serial_num_temp);
+							}
+							else
+							{
+								if((import_package_serial_num+1) == import_package_serial_num_temp)
+								{
+									FileWrite(n_file_fd, file_data_temp, nLen-17);
 									SendBuf[12] = 0x00;
-							        SendBuf[13] = 0x00;
-							        SendBuf[14] = 0x00;
-                                    Socket_Send(SendBuf, 18);
-                                    g_import_file_crc = CalculateFileCRC((void *)file_data_temp, nLen-17, 1);
-                                    DbgPrintf("[FILE DOWNLOAD] TRANSMISSION---receive package %d\n",import_package_serial_num_temp);
-                                    import_package_serial_num++;
-                                }
-                                else
-                                {
-                                    SendBuf[1] = 0x10;
-                                    nValue = gSendCount *2;
-                                    memcpy(&SendBuf[2],(UINT8 *)&nValue, 2);
-                                    nValue = gRecvCount *2;
-                                    memcpy(&SendBuf[4],(UINT8 *)&nValue, 2);
-                                    SendBuf[8] = 0x83;
-                                    SendBuf[12] = 0x01;
-                                    SendBuf[13] = 0x00;
-                                    SendBuf[14] = 0x00;
-                                    import_package_serial_num_temp = import_package_serial_num + 1;
-                                    memcpy((UINT8 *)&SendBuf[15], (UINT8 *)&import_package_serial_num_temp, 3);
-                                    Socket_Send(SendBuf, 18);
-                                    DbgPrintf("[FILE DOWNLOAD] TRANSMISSION FAIL---package number error, retransmission package %d\n",
-                                        import_package_serial_num_temp);
-                                }
-                            }
-                        }
-                        break;
-                    }
+									SendBuf[13] = 0x00;
+									SendBuf[14] = 0x00;
+									Socket_Send(SendBuf, 18);
+									g_import_file_crc = CalculateFileCRC((void *)file_data_temp, nLen-17, 1);
+									DbgPrintf("[FILE DOWNLOAD] TRANSMISSION---receive package %d\n",import_package_serial_num_temp);
+									import_package_serial_num++;
+								}
+								else
+								{
+									SendBuf[1] = 0x10;
+									nValue = gSendCount *2;
+									memcpy(&SendBuf[2],(UINT8 *)&nValue, 2);
+									nValue = gRecvCount *2;
+									memcpy(&SendBuf[4],(UINT8 *)&nValue, 2);
+									SendBuf[8] = 0x83;
+									SendBuf[12] = 0x01;
+									SendBuf[13] = 0x00;
+									SendBuf[14] = 0x00;
+									import_package_serial_num_temp = import_package_serial_num + 1;
+									memcpy((UINT8 *)&SendBuf[15], (UINT8 *)&import_package_serial_num_temp, 3);
+									Socket_Send(SendBuf, 18);
+									DbgPrintf("[FILE DOWNLOAD] TRANSMISSION FAIL---package number error, retransmission package %d\n",
+										import_package_serial_num_temp);
+								}
+							}
+						}
+						break;
+					}
                 }
                 case S_R_DataStop:
                 {
@@ -5268,9 +5257,6 @@ UINT8 PackMainFunction(UINT8 nProtocol,UINT8 *aBuf,UINT8 nLen)
                                 system(cmd_line);
 
 								gDt1000UpdataFlag=1;
-								DbgPrintf("gDt1000UpdataFlag: %d\n", gDt1000UpdataFlag);
-
-
 
                                 if(strstr(g_import_file_path, "/mnt/flash/OAM/OAM") != NULL)
                                 {
@@ -5596,10 +5582,7 @@ UINT8 APPackMainFunction(UINT8 nProtocol,UINT8 *aBuf,UINT8 nLen)
             }
             break;
         }
-        case POINT_LOAD_CMD:/**0xBB 点表导入 */
-        {
-            break;
-        }
+
         case REPORT_PHONE_CMD://0xBC
         {
             UINT16 nValue;
@@ -6571,7 +6554,7 @@ void SouthParamQuery(struct sTypeParam *uYtDotpoint,UINT8 uDeviceID,UINT8 dYtreg
 * Returns: none
 * Staff&Date: Liujing 2018.5.22
 *****************************************************************************/
-void SouthCmdTask(UINT8 *aSendBuf,UINT8 aSendLen, UINT8 *aRecvBuf,UINT8 uDeviceId)
+int SouthCmdTask(UINT8 *aSendBuf,UINT8 aSendLen, UINT8 *aRecvBuf,UINT8 uDeviceId)
 {
     UINT8 nErrorCount = 0;
     int nRecvLen;
@@ -6623,7 +6606,7 @@ void SouthCmdTask(UINT8 *aSendBuf,UINT8 aSendLen, UINT8 *aRecvBuf,UINT8 uDeviceI
         if(dSouth_Record_Information)
         	usleep(500000);
         else
-        	usleep(500);
+        	usleep(200);
 
         nRecvLen=readDev(nUartFd,aRecvBuf);
 
@@ -6637,6 +6620,7 @@ void SouthCmdTask(UINT8 *aSendBuf,UINT8 aSendLen, UINT8 *aRecvBuf,UINT8 uDeviceI
         GPIOSet(2,19,1);
 
     }while((aSendBuf[0]!=0xFF) && (nRecvLen == 0) && ((nErrorCount++)<3));
+    return nRecvLen;
 }
 
 /*****************************************************************************

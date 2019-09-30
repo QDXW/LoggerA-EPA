@@ -69,7 +69,7 @@ int readDev(int id, unsigned char *buffer)
 			if(dSouth_Record_Information)
 				usleep(500000);
 			else
-				usleep(500);
+				usleep(200);
 
 			nErrorCount++;
 			if(nErrorCount>100)
@@ -114,7 +114,7 @@ int readDev(int id, unsigned char *buffer)
 					rnum = read(fd,aTemp,255);
 					if(rnum<=0)
 					{
-						usleep(500);
+						usleep(200);
 
 						nErrorCount++;
 						if(nErrorCount>200)

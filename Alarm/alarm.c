@@ -643,12 +643,14 @@ void *AlarmThreadMasterChannel()
 
         while((pPoint != NULL) && (nLen < 235))
         {
+//        	DbgPrintf("nAlarmCount = %d\n\n",pPoint->nAlarmCount);
             if((pPoint->nAlarmID == Alarm_Link_Error) && (pPoint->nAlarmCount < ALARM_SCANF_MAXNUMBER))
             {
                 pPoint = pPoint->pNext;
                 continue;
             }
 
+//            DbgPrintf("nUploadStatusMasterChannel = %d\n\n",pPoint->nUploadStatusMasterChannel);
             if(pPoint->nUploadStatusMasterChannel <= ALARM_REPORT_MAXNUMBER)
             {
                 aSendBuf[nLen] = pPoint->nDeviceID;
@@ -657,15 +659,15 @@ void *AlarmThreadMasterChannel()
                 aSendBuf[nLen+4] = pPoint->nAlarmExternID;
                 aSendBuf[nLen+5] = 1;
                 nLen += 6;
-                //pPoint->nUploadStatusMasterChannel++;
-                //pPoint->nAlarmCount=ALARM_SCANF_MAXNUMBER;
+
+//                DbgPrintf("nAlarmID = %d,nUploadStatusMasterChannel = %d\n\n", pPoint->nAlarmID, pPoint->nUploadStatusMasterChannel);
                 if((pPoint->nAlarmID == Alarm_Link_Error) && (pPoint->nUploadStatusMasterChannel < 2))
                 {
                     UINT8 nDeviceTypeTemp=gDeviceInfo[pPoint->nDeviceID].nType;
                     struct sTypeGroup *pTypeGroupTemp=NULL;
                     struct sTypeParam *pTypeParamTemp=NULL;
-                    UINT8 nYXCount=0,nYCCount=0,nYKCount=0,nSDCount=0,nDDCount=0;
-                    UINT8 nLoopCount=0;
+                    UINT16 nYXCount=0,nYCCount=0,nYKCount=0,nSDCount=0,nDDCount=0;
+                    UINT16 nLoopCount=0;
 
                     pPoint->nUploadStatusMasterChannel = 2;
                     gPointTablePossessFlag|=(1<<3);
@@ -679,11 +681,12 @@ void *AlarmThreadMasterChannel()
                             {
                                 switch(pTypeParamTemp->nType)
                                 {
-                                    case 1:nYCCount++;break;
-                                    case 2:nYXCount++;break;
+                                    case 1:nYCCount++; DbgPrintf("  nYCCount:%d\n",nYCCount); break;
+                                    case 2:nYXCount++;DbgPrintf("  nYXCount:%d\n",nYXCount);break;
                                     case 3:nDDCount++;break;
                                     case 4:nYKCount++;break;
                                     case 5:nSDCount++;break;
+                                    default:break;
                                 }
                                 pTypeParamTemp=pTypeParamTemp->pNext;
                             }
@@ -696,7 +699,7 @@ void *AlarmThreadMasterChannel()
                     }
                     gPointTablePossessFlag&=~(1<<3);
 
-//                    printf("YX=%d,YC=%d,YK=%d\r\n",nYXCount,nYCCount,nYKCount);
+//                    DbgPrintf("YX=%d,YC=%d,YK=%d\r\n",nYXCount,nYCCount,nYKCount);
                     for(nLoopCount=0;nLoopCount<nYCCount;nLoopCount++)
                     {
                         aPointBuf[gDeviceInfo[pPoint->nDeviceID].nYCAddr+nLoopCount].nValue=0xFFFFFFFF;
@@ -715,14 +718,14 @@ void *AlarmThreadMasterChannel()
                         aPointBuf[gDeviceInfo[pPoint->nDeviceID].nDDAddr+nLoopCount].nPreValue=0xFFFFFFFF;
                         aPointBuf[gDeviceInfo[pPoint->nDeviceID].nDDAddr+nLoopCount].nStatus=1;
                     }
-                    /*for(nLoopCount=0;nLoopCount<nYKCount;nLoopCount++){
-                        aPointBuf[gDeviceInfo[pPoint->nDeviceID].nYKAddr+nLoopCount].nValue=0xFFFFFFFF;
-                        aPointBuf[gDeviceInfo[pPoint->nDeviceID].nYKAddr+nLoopCount].nPreValue=0xFFFFFFFF;
-                    }
-                    for(nLoopCount=0;nLoopCount<nSDCount;nLoopCount++){
-                        aPointBuf[gDeviceInfo[pPoint->nDeviceID].nSDAddr+nLoopCount].nValue=0xFFFFFFFF;
-                        aPointBuf[gDeviceInfo[pPoint->nDeviceID].nSDAddr+nLoopCount].nPreValue=0xFFFFFFFF;
-                    }*/
+//                    for(nLoopCount=0;nLoopCount<nYKCount;nLoopCount++){
+//                        aPointBuf[gDeviceInfo[pPoint->nDeviceID].nYKAddr+nLoopCount].nValue=0xFFFFFFFF;
+//                        aPointBuf[gDeviceInfo[pPoint->nDeviceID].nYKAddr+nLoopCount].nPreValue=0xFFFFFFFF;
+//                    }
+//                    for(nLoopCount=0;nLoopCount<nSDCount;nLoopCount++){
+//                        aPointBuf[gDeviceInfo[pPoint->nDeviceID].nSDAddr+nLoopCount].nValue=0xFFFFFFFF;
+//                        aPointBuf[gDeviceInfo[pPoint->nDeviceID].nSDAddr+nLoopCount].nPreValue=0xFFFFFFFF;
+//                    }
                 }
             }
             pPoint=pPoint->pNext;
@@ -732,7 +735,7 @@ void *AlarmThreadMasterChannel()
         {
             aSendBuf[1] = nLen - 2;
             aSendBuf[7] = (nLen - 15) / 6 + 128;
-            printf("gMasterReportSwitch = %d\r\n", gMasterReportSwitch);
+//            printf("gMasterReportSwitch = %d\r\n", gMasterReportSwitch);
             if(gMasterReportSwitch != 1)
                 Socket_Send(aSendBuf, nLen);
             //if(g_ethernet_connect_status != 1)
@@ -746,7 +749,7 @@ void *AlarmThreadMasterChannel()
         {
             if(gDeviceInfo[pPoint->nDeviceID].nInUse == _YES)
                 LedSet(5,1);
-            //DbgPrintf("[AlarmThreadMasterChannel]pPoint->nDeviceID = %d, pPoint->nAlarmID = %d, pPoint->nModbusAddr = %d\n\n\n", pPoint->nDeviceID, pPoint->nAlarmID, pPoint->nModbusAddr);
+//            DbgPrintf("[AlarmThreadMasterChannel]pPoint->nDeviceID = %d, pPoint->nAlarmID = %d, pPoint->nModbusAddr = %d\n\n\n", pPoint->nDeviceID, pPoint->nAlarmID, pPoint->nModbusAddr);
             pPoint=pPoint->pNext;
         }
         sleep(30);
