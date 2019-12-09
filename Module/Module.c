@@ -815,7 +815,7 @@ void *ModuleThreadMasterChannel()
                 nErrorCount=0;
                 while(1)
                 {
-                    usleep(500);
+                    usleep(1000);
                     memset(aTemp,0,sizeof(aTemp));
                     rnum = read(nModemFd,aTemp,sizeof(aTemp));
                     if(rnum<=0)
@@ -826,8 +826,14 @@ void *ModuleThreadMasterChannel()
                     }
                     else
                     {
-                        //printf("Modem Recv = %s\r\n",aTemp);
+//                        printf("\r\n/*********Pinnet Modem Recv = %s\r\n",aTemp);
                         memcpy((UINT8 *)&aRecvBuf[nRecvCountTemp],aTemp,rnum);
+//                        printf("\r\n/*************Pinnet Modem Recv Data = ");
+//                        for(i=0;i < 1024;i++)
+//						{
+//							NorthPrintf("%02X ",aRecvBuf[i]);
+//						}
+//						NorthPrintf("\r\n");
                         nRecvCountTemp += rnum;
                         pPoint = (void *)strstr((void *)aRecvBuf,"+");
                         if(pPoint!=NULL)
@@ -927,7 +933,7 @@ void *ModuleThreadMasterChannel()
                 }
                 else if(strstr((void *)aRecvBuf,"closed")!=NULL)
                 {
-                    //pthread_mutex_unlock(&modemsem);
+                    pthread_mutex_unlock(&modemsem);
                     DbgPrintf("[Channel 0]Modem close\r\n");
                     break;
                 }
@@ -939,7 +945,7 @@ void *ModuleThreadMasterChannel()
                 {
                     gModemRecvFlag=1;
                 }*/
-                //pthread_mutex_unlock(&modemsem);
+                pthread_mutex_unlock(&modemsem);
                 usleep(1000);
             }
             TestLogTimeFileWrite();

@@ -69,7 +69,7 @@ int readDev(int id, unsigned char *buffer)
 			if(dSouth_Record_Information)
 				usleep(500000);
 			else
-				usleep(200);
+				usleep(1000);
 
 			nErrorCount++;
 			if(nErrorCount>100)
@@ -211,7 +211,7 @@ int readDevEsn(int id, unsigned char *buffer)
 
     while(rnum<=0)
     {
-        usleep(300);
+        usleep(500);
         rnum = read(fd,aTemp,255);
         if(rnum<=0)
         {
@@ -241,14 +241,12 @@ int readDevEsn(int id, unsigned char *buffer)
             else
             {
                 nLen +=rnum;
-                if(((buffer[1]&0x80)!=0)||(buffer[1]!=0x3B))
+                if(((buffer[1]&0x80)!=0)||((Type_Huawei_Modbus == gDeviceInfo[buffer[0]].nProtocolType)?buffer[1]!=0x2B:buffer[1]!=0x3B))
                 {
                     return -1;
                 }
-                if(buffer[6]==0x87)
-                    nLenAll=buffer[12]+15;
-                else
-                    nLenAll=buffer[10]+13;
+
+                nLenAll = (buffer[6]==0x87)?(buffer[12]+15):((Type_Huawei_Modbus == gDeviceInfo[buffer[0]].nProtocolType)?(buffer[9]+12):(buffer[10]+13));
                 while(nLen<nLenAll)
                 {
                     rnum = read(fd,&aTemp,256);
@@ -274,12 +272,6 @@ int readDevEsn(int id, unsigned char *buffer)
             }
         }
     }
-    /*printf("recv:");
-    for(i=0;i<nLenAll;i++)
-    {
-        printf("%02X ",buffer[i]);
-    }
-    printf("\r\n");*/
     return nLenAll;
 }
 
@@ -373,7 +365,7 @@ int writeAP(int id,unsigned char *buffer, int length)
 *****************************************************************************/
 int writeModem(unsigned char *buffer,UINT16 nLen)
 {
-    //printf("Modem Send : %s\r\n",buffer);
+//    printf("Modem Send : %s\r\n",buffer);
     write(nModemFd,buffer,nLen);
     return 0;
 }
@@ -466,6 +458,7 @@ void ModemSend(UINT8 socket_id,UINT8 *aSendbuf,UINT16 nLen)
             memset(aRecvBuf,0,sizeof(aRecvBuf));
             rnum = readModem(aRecvBuf);
             usleep(100);
+//            printf("\r\n/*********Pinnet readModem = %s\r\n",aRecvBuf);
             if(strstr((void *)aRecvBuf,">")==NULL)
             {
                 nErrorCount++;

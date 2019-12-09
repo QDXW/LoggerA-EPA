@@ -681,12 +681,11 @@ void *AlarmThreadMasterChannel()
                             {
                                 switch(pTypeParamTemp->nType)
                                 {
-                                    case 1:nYCCount++; DbgPrintf("  nYCCount:%d\n",nYCCount); break;
-                                    case 2:nYXCount++;DbgPrintf("  nYXCount:%d\n",nYXCount);break;
+                                    case 1:nYCCount++; /*DbgPrintf("  nYCCount:%d\n",nYCCount);*/ break;
+                                    case 2:nYXCount++;/*DbgPrintf("  nYXCount:%d\n",nYXCount);*/break;
                                     case 3:nDDCount++;break;
                                     case 4:nYKCount++;break;
                                     case 5:nSDCount++;break;
-                                    default:break;
                                 }
                                 pTypeParamTemp=pTypeParamTemp->pNext;
                             }

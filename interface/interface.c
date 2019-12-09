@@ -232,6 +232,7 @@ void DriverInit(void)
     E2promRead((UINT8 *)&gMainDeviceType,DeviceTypeAddr,20);
 
     E2promRead((UINT8 *)&gMainDeviceStatus,DeviceStatusAddr,1);
+//    printf("\r\n/************Pinnet gMainDeviceStatus = %d\r\n",gMainDeviceStatus);
     if(gMainDeviceStatus>DEVSTATUS_NORMAL_WORKMODE)
         gMainDeviceStatus=DEVSTATUS_NEW_DEVICE;
     if(gMainDeviceStatus==1)
@@ -281,28 +282,29 @@ void DriverInit(void)
         memset(aSNBuf,0,sizeof(aSNBuf));
         system("ifconfig eth0 down");
         sleep(1);
-        switch(gMainDeviceSN[15])
-        {
-            case 'R':
-            case 'N':
-            case 'r':
-                gConnectDeviceMaxNum=40;
-                break;
-            case 'E':
-            case 'e':
-                gConnectDeviceMaxNum=30;
-                break;
-            case 'F':
-            case 'f':
-                gConnectDeviceMaxNum=15;
-                break;
-            case 'T':
-            case 't':
-                gConnectDeviceMaxNum=5;
-                break;
-            default:
-                gConnectDeviceMaxNum=40;
-        }
+//        switch(gMainDeviceSN[15])
+//        {
+//            case 'R':
+//            case 'N':
+//            case 'r':
+//                gConnectDeviceMaxNum=40;
+//                break;
+//            case 'E':
+//            case 'e':
+//                gConnectDeviceMaxNum=30;
+//                break;
+//            case 'F':
+//            case 'f':
+//                gConnectDeviceMaxNum=15;
+//                break;
+//            case 'T':
+//            case 't':
+//                gConnectDeviceMaxNum=5;
+//                break;
+//            default:
+//                gConnectDeviceMaxNum=40;
+//        }
+        gConnectDeviceMaxNum=40;
         switch(gMainDeviceSN[16])
         {
             case 'D':
@@ -738,7 +740,7 @@ void TypeGroupAdd(UINT8 nAddMode,UINT16 nTypeID,UINT8 nProtocolTypeID)
     pPoint->nProtocalTypeID=nProtocolTypeID;
     pPoint->pNext=NULL;
     pPoint->pParamNext=NULL;
-//  printf("555 Create Table of Device\r\n");
+//    printf("555 Create Table of Device:%d\r\n",nAddMode);
     if(nAddMode)
     {
         if(gTypeHead==NULL)
@@ -3015,7 +3017,9 @@ UINT8 PackMainFunction(UINT8 nProtocol,UINT8 *aBuf,UINT8 nLen)
 
                         SendSingleFrameToAPP(0xC3,0x008B,0x04);
                         gDeviceStationBuild=4;
-                    }
+					}
+					E2promWrite((UINT8 *)&gConnectDeviceNum,DeviceNumberAddr,1);
+					DbgPrintf("\r\n/***********main end C0 gMainDeviceStatus = %d  gConnectDeviceNum = %d\r\n",gMainDeviceStatus,gConnectDeviceNum);
                 }
             }
             break;
@@ -3234,6 +3238,9 @@ UINT8 PackMainFunction(UINT8 nProtocol,UINT8 *aBuf,UINT8 nLen)
 					InitDeviceIecInfo();
 
                     gTypePointClearFlag=1;
+                    gMainDeviceStatus=DEVSTATUS_NORMAL_WORKMODE;
+					E2promWrite((UINT8 *)&gMainDeviceStatus,DeviceStatusAddr,1);
+					DbgPrintf("\r\n/***********main END C5 gMainDeviceStatus = %d  gConnectDeviceNum = %d\r\n",gMainDeviceStatus,gConnectDeviceNum);
                 }
             }
             break;
@@ -4850,7 +4857,7 @@ UINT8 PackMainFunction(UINT8 nProtocol,UINT8 *aBuf,UINT8 nLen)
 					UINT8  file_data[SYS_FILES_LEN] = {0};             //customized data: 200 bytes
 					UINT8  data_temp[FIXED_LENGTH];
 					UINT16 rCRC;
-
+					DbgPrintf("South Record Transmitting!!!\r\n");
                 	if(SendBuf[1] == 0x10 && dSouth_Record_Information)
                 	{
 						data_temp[0] = (dSouth_Record_Information&0xFF00)>>8;
@@ -4872,7 +4879,7 @@ UINT8 PackMainFunction(UINT8 nProtocol,UINT8 *aBuf,UINT8 nLen)
 								rCRC = (aRecvBuf[aRecvBuf[6]+8]<<8) | aRecvBuf[aRecvBuf[6]+7];
 								if(CRC16((void *)aRecvBuf,207) == rCRC)
 								{
-									dSouth_Record_Information = 0;
+//									dSouth_Record_Information = 0;
 									break;
 								}
 							}
@@ -6436,6 +6443,13 @@ void InquireYT(UINT8 *Msg)
 	u104Addr = Msg[12]|(Msg[13]<<8);
 	memcpy(SendMessage,Msg,Msg[1]+2);
 
+	/******************************遥调地址错误********************************/
+	if((u104Addr < 0x6201) || (u104Addr > 0x6400))
+	{
+		DbgPrintf("YT Address Error!\r\n");
+		return ;
+	}
+
 	struct sTypeParam *uYtDotpoint = (struct sTypeParam *)malloc(uYtDotSum*sizeof(struct sTypeParam));
 	if(uYtDotpoint == NULL)
 	{
@@ -6603,10 +6617,10 @@ int SouthCmdTask(UINT8 *aSendBuf,UINT8 aSendLen, UINT8 *aRecvBuf,UINT8 uDeviceId
         }
         GPIOSet(2,19,0);		/*南向COM处于接收状态*/
 
-        if(dSouth_Record_Information)
-        	usleep(500000);
-        else
-        	usleep(200);
+//        if(dSouth_Record_Information)
+//        	usleep(500000);
+//        else
+			usleep(1000);
 
         nRecvLen=readDev(nUartFd,aRecvBuf);
 

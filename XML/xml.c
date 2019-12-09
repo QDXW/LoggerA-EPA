@@ -574,8 +574,9 @@ void ReadPointTableFile(void)
                 }
                 else
                     nTableProtocolType=1;
+//                printf("GET Point Table %d\r\n",nTableNum);
                 TypeGroupAdd(1,nTableNum,nTableProtocolType);
-                //printf("ADD Point Table %d\r\n",nTableNum);
+//                printf("ADD Point Table %d\r\n",nTableNum);
                 while((pPoint=(void *)strstr((void *)pPoint,"<Tag id=\""))!=NULL)//逐一获取点表每个信号点的信息
                 {
                     UINT8 nParaLen,nParaType,nParaDataType;
@@ -668,7 +669,7 @@ void ReadPointTableFile(void)
             pTypeGroup=pTypeGroup->pNext;
         }
     }*/
-    gTypeGroupPoint=NULL;
+//    gTypeGroupPoint=NULL;
 }
 
 void AlarmFileWrite(void)

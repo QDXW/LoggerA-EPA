@@ -1513,6 +1513,8 @@ void *LocalThread()
             nMinDelay = time((time_t *)NULL);
 			nOldMinDelay = nMinDelay - 210;
 			gMBQueryDeviceCountBuf = 41;
+			gTypeGroupPointMB=NULL;
+			gTypeParamPointMB=NULL;
             continue;
         }
         if((gConnectDeviceNum>40)||(gConnectDeviceNum==0))/*连接设备大于40或者0时,进行循环等待设备数量正常*/
@@ -1865,7 +1867,7 @@ void *LocalThread()
                 case Type_104_YX:
                 {
                     UINT32 nDataAddr;
-                    if(nValueTemp==0xFFFF)
+                    if(nValueTemp==0xFFFF || nValueTemp==0xFFFFFFFF)
                     {
                         DbgPrintf("[Alarm]0xFFFF Do Nothing\r\n");
                         break;
@@ -1901,7 +1903,7 @@ void *LocalThread()
                 {
                     UINT32 nDataAddr;
                     INT32 nDataTemp;
-                    if(nValueTemp==0xFFFF)
+                    if(nValueTemp==0xFFFF || nValueTemp==0xFFFFFFFF)
                     {
                         DbgPrintf("[Alarm]0xFFFF Do Nothing\r\n");
                         break;
@@ -1968,7 +1970,7 @@ void *LocalThread()
                 case Type_104_DD:
                 {
                     UINT32 nDataAddr;
-                    if(nValueTemp==0xFFFF)
+					if(nValueTemp==0xFFFF || nValueTemp==0xFFFFFFFF)
                     {
                         DbgPrintf("[Alarm]0xFFFF Do Nothing\r\n");
                         break;
@@ -1992,7 +1994,7 @@ void *LocalThread()
                     UINT32 nDataAddr=0;
                     UINT8 nAlarmValueCount;
 
-                    if(nValueTemp==0xFFFF)
+                    if(nValueTemp==0xFFFF || nValueTemp==0xFFFFFFFF)
                     {
                         DbgPrintf("[Alarm]0xFFFF Do Nothing\r\n");
                         break;
@@ -2062,9 +2064,10 @@ void *SouthUpdatethread()
 		   gUpdataModeFlag = 1;
 		   SouthSingleUpdata();//执行单播升级
 		   gUpdataModeFlag = 0;
-		   sleep(30);
+		   sleep(50);
 		   gDt1000UpdataFlag=0;
 		   DbgPrintf("SOUTH UPDATA END!!!\n");
+		   SouthDiscovery();//自发现查询，判断版本号是否变更，
 	   }
 
        sleep(1);
@@ -2389,6 +2392,7 @@ void SouthSingleUpdata(void)
 		{
 		    if(0!=memcmp(gDeviceInfo[i].aSofeVersion,gDt1000Update.vertion,17))
 		    {
+		    	int dResult = 0;
 				DbgPrintf("Sigle Upgrade Device Addr：%d\n",i);
 				memset(uTmpData,0,256);
 				uTmpData[0] = i;
@@ -2407,8 +2411,27 @@ void SouthSingleUpdata(void)
 				uTmpData[27] = uCrc>>8;
 
 				memset(uRecBuffer,0,256);
-				SouthCmdTask(uTmpData,28,uRecBuffer,gDeviceInfo[i].nDownlinkPort);
-		        sleep(3);
+				dResult = SouthCmdTask(uTmpData,28,uRecBuffer,gDeviceInfo[i].nDownlinkPort);
+				if(dResult > 0)
+				{
+					uCrc = CRC16(uRecBuffer,dResult-2);
+					if((uRecBuffer[0] == uTmpData[0]) && (uRecBuffer[1] == 0x1C) && (uCrc == (uRecBuffer[dResult-2]|(uRecBuffer[dResult-1]<<8))))
+					{
+						DbgPrintf("\r\nSigle Upgrade Start!\r\n");
+					}
+					else
+					{
+						DbgPrintf("\r\nSigle Upgrade Fail!\r\n");
+						continue;
+					}
+				}
+				else
+				{
+					DbgPrintf("\r\nSigle Upgrade Fail! \r\n");
+					continue;
+				}
+		        sleep(1);
+//		        sleep(3);
 
 				UINT8 aFilePath[50];
 		        strcpy((char *)aFilePath,"/mnt/flash/OAM/DT1000.bin");
@@ -2436,9 +2459,30 @@ void SouthSingleUpdata(void)
 						uCrc = CRC16(uTmpData,uReadDataLen+6);
 						uTmpData[uReadDataLen+6]=uCrc&0XFF;
 						uTmpData[uReadDataLen+7]=uCrc>>8;
-						if(SouthCmdTask(uTmpData,uReadDataLen+8,uRecBuffer,gDeviceInfo[i].nDownlinkPort) > 0)
+						dResult = SouthCmdTask(uTmpData,uReadDataLen+8,uRecBuffer,gDeviceInfo[i].nDownlinkPort);
+						DbgPrintf("\r\ndResult:%d \r\n",dResult);
+						if(dResult > 0)
 						{
-							DbgPrintf("\r\nSigle Upgrade %d Frame  DataLen:%d\r\n",s_uSendseq,uReadDataLen);
+							uCrc = CRC16(uRecBuffer,dResult-2);
+							if(uRecBuffer[0] != uTmpData[0])
+							{
+								DbgPrintf("\r\nSigle Upgrade Fail %d Frame DeviceAddr Error!!!\r\n",s_uSendseq);
+								break;
+							}
+							else if(uRecBuffer[1] != 0x2C)
+							{
+								DbgPrintf("\r\nSigle Upgrade Fail %d Frame Function Code Error!!!\r\n",s_uSendseq);
+								break;
+							}
+							else if(uCrc != (uRecBuffer[dResult-2]|(uRecBuffer[dResult-1]<<8)))
+							{
+								DbgPrintf("\r\nSigle Upgrade Fail %d Frame CRC Error!!!\r\n",s_uSendseq);
+								break;
+							}
+							else
+							{
+								DbgPrintf("\r\nSigle Upgrade %d Frame  DataLen:%d\r\n",s_uSendseq,uReadDataLen);
+							}
 						}
 						else
 						{
@@ -2446,7 +2490,7 @@ void SouthSingleUpdata(void)
 							break;
 						}
 					}
-					sleep(1);
+					usleep(500000);
 				}
 
 				sleep(1);
@@ -2787,6 +2831,112 @@ void WifiInit(void)
     WIFIEnable(1);
 }
 
+/*******************南向设备自发现收发*****************************************/
+int ScanfDevice_Query(UINT8 DeviceID,UINT8 COMID,UINT8 *aRecvBuf)
+{
+	int nRecvLen=0;
+	UINT16 nCRC,k;
+	UINT8 aSendBuf_Standard[7] = {0x00,0x2B,0x0E,0x03,0x88,0x00,0x00};
+	UINT8 aSendBuf[8] ={0x00,0x3B,0x03,0x0E,0x03,0x88,0x00,0x00};		//HUAWEI Modbus Function code 3B
+	aSendBuf[0] = DeviceID;
+	switch((gDeviceInfo[DeviceID].nProtocolType == NULL)?0XFFFF:gDeviceInfo[DeviceID].nProtocolType)
+	{
+	case 0XFFFF:						//点表类型未知情况下需要查询2B 3B
+		nCRC=CRC16(aSendBuf,6);		//先查3B
+		aSendBuf[6] = (UINT8)nCRC;
+		aSendBuf[7] = (UINT8)(nCRC>>8);
+		GPIOSet(2,19,1);
+		usleep(1000);
+		DbgPrintf("COM.%d Send:",2-COMID);
+		for(k=0;k<8;k++)
+		{
+			DbgPrintf("%02X ",aSendBuf[k]);
+		}
+		DbgPrintf("\r\n");
+		writeDev(nUartFd,aSendBuf,8);
+		GPIOSet(2,19,0);
+		usleep(50000);
+		nRecvLen=readDevEsn(nUartFd,aRecvBuf);
+		usleep(1000);
+		if((nRecvLen!=-1)&&(nRecvLen>=20)&&(aRecvBuf[0]==DeviceID))
+		{
+			usleep(1000);
+			break;
+		}
+		memcpy(aSendBuf,aSendBuf_Standard,sizeof(aSendBuf_Standard)); //再查2B
+		aSendBuf[0] = DeviceID;
+		nCRC=CRC16(aSendBuf,5);
+		aSendBuf[5] = (UINT8)nCRC;
+		aSendBuf[6] = (UINT8)(nCRC>>8);
+		GPIOSet(2,19,1);
+		usleep(1000);
+		DbgPrintf("COM.%d Send:",2-COMID);
+		for(k=0;k<7;k++)
+		{
+			DbgPrintf("%02X ",aSendBuf[k]);
+		}
+		DbgPrintf("\r\n");
+		writeDev(nUartFd,aSendBuf,7);
+		GPIOSet(2,19,0);
+		usleep(50000);
+		nRecvLen=readDevEsn(nUartFd,aRecvBuf);
+		usleep(1000);
+		break;
+
+	case Type_Huawei_Modbus:			//点表类型为华为Modbus情况下需要查询 3B
+		nCRC=CRC16(aSendBuf,6);
+		aSendBuf[6] = (UINT8)nCRC;
+		aSendBuf[7] = (UINT8)(nCRC>>8);
+		GPIOSet(2,19,1);
+		usleep(1000);
+		DbgPrintf("COM.%d Send:",2-COMID);
+		for(k=0;k<8;k++)
+		{
+			DbgPrintf("%02X ",aSendBuf[k]);
+		}
+		DbgPrintf("\r\n");
+		writeDev(nUartFd,aSendBuf,8);
+		GPIOSet(2,19,0);
+		usleep(50000);
+		nRecvLen=readDevEsn(nUartFd,aRecvBuf);
+		usleep(1000);
+		break;
+
+	default:			//点表类型为其他Modbus情况下需要查询 2B
+		memcpy(aSendBuf,aSendBuf_Standard,sizeof(aSendBuf_Standard));
+		aSendBuf[0] = DeviceID;
+		nCRC=CRC16(aSendBuf,5);
+		aSendBuf[5] = (UINT8)nCRC;
+		aSendBuf[6] = (UINT8)(nCRC>>8);
+		GPIOSet(2,19,1);
+		usleep(1000);
+		DbgPrintf("COM.%d Send:",2-COMID);
+		for(k=0;k<7;k++)
+		{
+			DbgPrintf("%02X ",aSendBuf[k]);
+		}
+		DbgPrintf("\r\n");
+		writeDev(nUartFd,aSendBuf,7);
+		GPIOSet(2,19,0);
+		usleep(50000);
+		nRecvLen=readDevEsn(nUartFd,aRecvBuf);
+		usleep(1000);
+		break;
+	}
+	if((nRecvLen==-1)||(nRecvLen<20)||(aRecvBuf[0]!=DeviceID))
+	{
+		usleep(10);
+		return -1;
+	}
+	nCRC = CRC16(aRecvBuf,nRecvLen-2);
+	if(((nCRC>>8)!=aRecvBuf[nRecvLen-1])||((nCRC&0xFF)!=aRecvBuf[nRecvLen-2]))
+	{
+		usleep(10);
+		return -1;
+	}
+	return nRecvLen;
+}
+
 /******************************************************************************/
 void *ScanfDeviceThread()
 {
@@ -2825,7 +2975,6 @@ void *ScanfDeviceThread()
                 int nRecvLen=0;
 				if(gDt1000UpdataFlag==1)
 					break;
-
 //                printf("\r\n[DeviceScanf]nNewDeviceFlag=%d,nExistsDevice=%d,gConnectDeviceMaxNum=%d\r\n",nNewDeviceFlag,nExistsDevice,gConnectDeviceMaxNum);
                 if((nNewDeviceFlag+nExistsDevice)>=gConnectDeviceMaxNum)
                     break;
@@ -2841,88 +2990,59 @@ void *ScanfDeviceThread()
                     nComBegin = 0;
                     nComEnd = 1;
                 }
+
                 for(j=nComBegin;j<=nComEnd;j++)
                 {
-                    UINT8 aSendBuf[8]={0x00,0x3B,0x03,0x0E,0x03,0x88,0x00,0x00};//DT1000 Function code is 3b
-                    UINT16 nCRC,nFPGAValue,k;
+//                	printf("/***********Pinnet typeGroupPoint%d = %d\r\n",i,(gDeviceInfo[i].nProtocolType != NULL)?gDeviceInfo[i].nProtocolType:255);
+                    UINT16 nFPGAValue;
                     UINT8 aEsnTemp[25],aRecvBuf[255];
                     UINT8 *pEsnPoint,*pEsnEnd;
                     UINT8 *pSoftVersion,*pSoftVersionEnd;
-
-                    nRecvLen = -1;
+//                    UINT8 num = 0;
                     /** 切换到COM1发送数据 */
                     pthread_mutex_lock(&Uartsem);
-                   do
+                    do
                     {
                         nFPGAValue = j;
                         FpgaWrite(3,nFPGAValue);
                     }while((FpgaRead(0x03))!=nFPGAValue);
-
-                    aSendBuf[0] = i; /** 二级地址 */
-                    nCRC=CRC16(aSendBuf,6);
-                    aSendBuf[6] = (UINT8)nCRC;
-                    aSendBuf[7] = (UINT8)(nCRC>>8);
-
                     memset(aRecvBuf,0,sizeof(aRecvBuf));
-                    GPIOSet(2,19,1);
-                    usleep(1000);
-                    DbgPrintf("COM.%d Send:",2-j);
-                    for(k=0;k<8;k++)
-                    {
-                    	DbgPrintf("%02X ",aSendBuf[k]);
-                    }
-                    DbgPrintf("\r\n");
-                    writeDev(nUartFd,aSendBuf,8);
-                    //usleep(100);
-                    GPIOSet(2,19,0);
-                    nRecvLen=readDevEsn(nUartFd,aRecvBuf);
+                    nRecvLen = ScanfDevice_Query(i,j,aRecvBuf);
+                   	if(nRecvLen < 0)
+                   	{
+                   		pthread_mutex_unlock(&Uartsem);
+                   		continue;
+                   	}
+                   	pthread_mutex_unlock(&Uartsem);
 
-                    usleep(1000);
-                    pthread_mutex_unlock(&Uartsem);
-                    if((nRecvLen==-1)||(nRecvLen<20)
-                       ||(aRecvBuf[0]!=i))
-                    {
-                        usleep(10);
-                        nRecvLen = -1;
-                        continue;
-                    }
-                    nCRC = CRC16(aRecvBuf,nRecvLen-2);
-                    if(((nCRC>>8)!=aRecvBuf[nRecvLen-1])||((nCRC&0xFF)!=aRecvBuf[nRecvLen-2]))
-                    {
-                        usleep(10);
-                        nRecvLen = -1;
-                        continue;
-                    }
-                    aDeviceInfoBuf[i].nDownlinkPort=2-j;
-                    memset((UINT8 *)&aDownLinkDevice[i],0,256);
-
-				    memcpy((UINT8 *)&aDownLinkDevice[i],(UINT8 *)&aRecvBuf[11],aRecvBuf[10]);
+					aDeviceInfoBuf[i].nDownlinkPort=2-j;
+					memset((UINT8 *)&aDownLinkDevice[i],0,256);
+					memcpy((UINT8 *)&aDownLinkDevice[i],(UINT8 *)&aRecvBuf[11],aRecvBuf[10]);
 					uDownLinkDeviceLen=aRecvBuf[10];   //discory len
-
-                    aDeviceInfoBuf[i].nInUse = _YES;
-                    aDeviceInfoBuf[i].nProtocolType = PTYPE_HUAWEI_MODBUS;
-                    aDeviceInfoBuf[i].nEndian = _BIG_ENDIAN;
-                    aDeviceInfoBuf[i].nRate = 9600;
-                    memset(aEsnTemp,0,sizeof(aEsnTemp));
-                    pEsnPoint = (void *)strstr((void *)&aDownLinkDevice[i],"4=");
-                    pEsnPoint += strlen("4=");
-                    pEsnEnd = (void *)strstr((void *)pEsnPoint,";");
-                    memset(aDeviceInfoBuf[i].aESN,0,sizeof(aDeviceInfoBuf[i].aESN));
-                    if(pEsnEnd - pEsnPoint>20)
-                        memcpy(aDeviceInfoBuf[i].aESN, pEsnPoint,20);
-                    else
-                        memcpy(aDeviceInfoBuf[i].aESN, pEsnPoint,pEsnEnd - pEsnPoint);
-                    DbgPrintf("[ESN]=%s   ",aDeviceInfoBuf[i].aESN);
-                    pSoftVersion = (void *)strstr((void *)&aDownLinkDevice[i],"2=");
-                    pSoftVersion += strlen("2=");
-                    pSoftVersionEnd = (void *)strstr((void *)pSoftVersion,";");
-                    memset(aDeviceInfoBuf[i].aSofeVersion,0,sizeof(aDeviceInfoBuf[i].aSofeVersion));
-                    if(pSoftVersionEnd - pSoftVersion>20)
-                        memcpy(aDeviceInfoBuf[i].aSofeVersion, pSoftVersion,20);
-                    else
-                        memcpy(aDeviceInfoBuf[i].aSofeVersion, pSoftVersion,pSoftVersionEnd - pSoftVersion);
-                    DbgPrintf("[SOFTVERSION]SoftVersion=%s\r\n",aDeviceInfoBuf[i].aSofeVersion);
-                    break;
+					aDeviceInfoBuf[i].nInUse = _YES;
+					aDeviceInfoBuf[i].nProtocolType = PTYPE_HUAWEI_MODBUS;
+					aDeviceInfoBuf[i].nEndian = _BIG_ENDIAN;
+					aDeviceInfoBuf[i].nRate = 9600;
+					memset(aEsnTemp,0,sizeof(aEsnTemp));
+					pEsnPoint = (void *)strstr((void *)&aDownLinkDevice[i],"4=");
+					pEsnPoint += strlen("4=");
+					pEsnEnd = (void *)strstr((void *)pEsnPoint,";");
+					memset(aDeviceInfoBuf[i].aESN,0,sizeof(aDeviceInfoBuf[i].aESN));
+					if(pEsnEnd - pEsnPoint>20)
+						memcpy(aDeviceInfoBuf[i].aESN, pEsnPoint,20);
+					else
+						memcpy(aDeviceInfoBuf[i].aESN, pEsnPoint,pEsnEnd - pEsnPoint);
+					DbgPrintf("[ESN]=%s   ",aDeviceInfoBuf[i].aESN);
+					pSoftVersion = (void *)strstr((void *)&aDownLinkDevice[i],"2=");
+					pSoftVersion += strlen("2=");
+					pSoftVersionEnd = (void *)strstr((void *)pSoftVersion,";");
+					memset(aDeviceInfoBuf[i].aSofeVersion,0,sizeof(aDeviceInfoBuf[i].aSofeVersion));
+					if(pSoftVersionEnd - pSoftVersion>20)
+						memcpy(aDeviceInfoBuf[i].aSofeVersion, pSoftVersion,20);
+					else
+						memcpy(aDeviceInfoBuf[i].aSofeVersion, pSoftVersion,pSoftVersionEnd - pSoftVersion);
+					DbgPrintf("[SOFTVERSION]SoftVersion=%s\r\n",aDeviceInfoBuf[i].aSofeVersion);
+					break;
                 }
                 if((nRecvLen==-1)||(nRecvLen<20))
                 {
@@ -4542,4 +4662,3 @@ void *PeriodicResetThread()
         sleep(10);
     }
 }
-
