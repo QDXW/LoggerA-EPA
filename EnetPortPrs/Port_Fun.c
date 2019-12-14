@@ -125,6 +125,7 @@ void InitDeviceIecInfo(void)
 			gDeviceiec104Info[k].nDDSum=ddCount;
 			gDeviceiec104Info[k].nAlarmSum=alarmCount;
 
+			printf("\r\nyxCount:%d  ycCount:%d   ykCount:%d  sdCount:%d  ddCount:%d   alarmCount:%d\r\n",yxCount,ycCount,ykCount,sdCount,ddCount,alarmCount);
             yxCount=0;
             ycCount=0;
             ykCount=0;

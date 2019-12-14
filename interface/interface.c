@@ -193,7 +193,7 @@ void DriverInit(void)
 
     printf("\r\nSystem boot start!\r\n");
     printf("Software Version = %X\r\n",SYS_OAM_VERSION);
-    printf("Dubug Version = %04X\r\n",SYS_DEBUG_VERSION);
+    printf("Debug Version = %04X\r\n",SYS_DEBUG_VERSION);
 
 #ifdef __DEBUG__
     printf("*******************************************************************\r\n");
@@ -232,7 +232,6 @@ void DriverInit(void)
     E2promRead((UINT8 *)&gMainDeviceType,DeviceTypeAddr,20);
 
     E2promRead((UINT8 *)&gMainDeviceStatus,DeviceStatusAddr,1);
-//    printf("\r\n/************Pinnet gMainDeviceStatus = %d\r\n",gMainDeviceStatus);
     if(gMainDeviceStatus>DEVSTATUS_NORMAL_WORKMODE)
         gMainDeviceStatus=DEVSTATUS_NEW_DEVICE;
     if(gMainDeviceStatus==1)
@@ -740,7 +739,7 @@ void TypeGroupAdd(UINT8 nAddMode,UINT16 nTypeID,UINT8 nProtocolTypeID)
     pPoint->nProtocalTypeID=nProtocolTypeID;
     pPoint->pNext=NULL;
     pPoint->pParamNext=NULL;
-//    printf("555 Create Table of Device:%d\r\n",nAddMode);
+    printf("555 Create Table of Device\r\n");
     if(nAddMode)
     {
         if(gTypeHead==NULL)
@@ -962,11 +961,12 @@ void Socket_Send(UINT8 *aBuf,UINT8 nLen)
     else if((gSocketMode==1)&&(gModuleChannel0InitFlag > 0))
     {
         pthread_mutex_lock(&modemsem);
+        usleep(200000);
         ModemSend(0,aBuf,nLen);
         /*if(nLen>6)
             LogRecordFileWrite(6,aBuf,nLen);*/
         pthread_mutex_unlock(&modemsem);
-        usleep(200000);
+
     }
 }
 
@@ -1577,6 +1577,7 @@ void TotalCallPacket()
                 {
                     break;
                 }
+                if((0x4F800000 == aPointBuf[0x4001+i].nValue)&&(aPointBuf[0x4001+i].nLen== 5))
                 memcpy((UINT8 *)&aBuf[9+(i-gYCPointCount)*5],(UINT8 *)&aPointBuf[0x4001+i].nValue,4);
                 //printf("YCCCCCC  addr =   %d   value = %d\r\n",0x4001+i,aPointBuf[0x4001+i].nPreValue);
                 aBuf[9+(i-gYCPointCount)*5+4]=0;
@@ -2761,7 +2762,7 @@ UINT8 PackMainFunction(UINT8 nProtocol,UINT8 *aBuf,UINT8 nLen)
             memcpy(&SendBuf[2],(UINT8 *)&nValue,2);
             nValue=gRecvCount*2;
             memcpy(&SendBuf[4],(UINT8 *)&nValue,2);
-            SendBuf[7]=0x01;
+//            SendBuf[7]=0x01;
             SendBuf[8]=sMessage.mASDU.nSendFlag+0x10;/** 传输原因 */
             Socket_Send(SendBuf,nLen);
 
@@ -3017,9 +3018,7 @@ UINT8 PackMainFunction(UINT8 nProtocol,UINT8 *aBuf,UINT8 nLen)
 
                         SendSingleFrameToAPP(0xC3,0x008B,0x04);
                         gDeviceStationBuild=4;
-					}
-					E2promWrite((UINT8 *)&gConnectDeviceNum,DeviceNumberAddr,1);
-					DbgPrintf("\r\n/***********main end C0 gMainDeviceStatus = %d  gConnectDeviceNum = %d\r\n",gMainDeviceStatus,gConnectDeviceNum);
+                    }
                 }
             }
             break;
@@ -3227,20 +3226,14 @@ UINT8 PackMainFunction(UINT8 nProtocol,UINT8 *aBuf,UINT8 nLen)
                         AP_Send(SendBuf,16);
                     }
                     AlarmDeleteAll();
+                    sleep(1);
                     SendSFramePacket();
                     memcpy(gDeviceInfo,gDeviceInfoBuf,sizeof(gDeviceInfo));
                     memset(gDeviceInfoBuf,0,sizeof(gDeviceInfoBuf));
                     TagBaseFileWrite();
                     TagInfoFileWrite();
-
-					DLinkParamGet();
-					ReadPointTableFile();
-					InitDeviceIecInfo();
-
                     gTypePointClearFlag=1;
-                    gMainDeviceStatus=DEVSTATUS_NORMAL_WORKMODE;
-					E2promWrite((UINT8 *)&gMainDeviceStatus,DeviceStatusAddr,1);
-					DbgPrintf("\r\n/***********main END C5 gMainDeviceStatus = %d  gConnectDeviceNum = %d\r\n",gMainDeviceStatus,gConnectDeviceNum);
+                    printf("gTypePointClearFlag = %d  gPointTablePossessFlag = %d\r\n",gTypePointClearFlag,gPointTablePossessFlag);
                 }
             }
             break;
@@ -4611,6 +4604,7 @@ UINT8 PackMainFunction(UINT8 nProtocol,UINT8 *aBuf,UINT8 nLen)
                             }
                             case SOUTH_RECORD:
 							{
+								int dResult = 0;
 								UINT8 CRCErrcount = 0;
 								UINT16 rCRC;
 								total_package_num = 0;
@@ -4625,8 +4619,17 @@ UINT8 PackMainFunction(UINT8 nProtocol,UINT8 *aBuf,UINT8 nLen)
 									rCRC = CRC16(SendBuf,4);
 									SendBuf[4]=rCRC&0xFF;
 									SendBuf[5]=rCRC>>8;
-									SouthCmdTask(SendBuf,6,aRecvBuf,gDeviceInfo[SendBuf[0]].nDownlinkPort);
-									rCRC = (aRecvBuf[11]<<8) | aRecvBuf[10];
+
+									for(i = 0;i < 3;i++)
+									{
+										memset(aRecvBuf,0,sizeof(aRecvBuf));
+										SouthCmdTask_SouthMessage(SendBuf,6,aRecvBuf,gDeviceInfo[SendBuf[0]].nDownlinkPort,INTERVAL_500MS);
+										rCRC = (aRecvBuf[11]<<8) | aRecvBuf[10];
+										if(CRC16(aRecvBuf,10) == rCRC)
+										{
+											break;
+										}
+									}
 
 									if(CRC16(aRecvBuf,10) == rCRC)
 									{
@@ -4634,6 +4637,8 @@ UINT8 PackMainFunction(UINT8 nProtocol,UINT8 *aBuf,UINT8 nLen)
 												(aRecvBuf[7]<<8)|(aRecvBuf[8]);
 
 										total_package_num = total_file_length%200 == 0? total_file_length/200 : 1 + total_file_length/200;
+										if(total_package_num == 0)
+											dSouth_Record_Information = 0;
 									}
 									else
 									{
@@ -4807,9 +4812,16 @@ UINT8 PackMainFunction(UINT8 nProtocol,UINT8 *aBuf,UINT8 nLen)
 						rCRC = CRC16(data_temp,6);
 						data_temp[6]=rCRC&0xFF;
 						data_temp[7]=rCRC>>8;
-						memset(aRecvBuf,0,sizeof(aRecvBuf));
-						SouthCmdTask(data_temp,8,aRecvBuf,gDeviceInfo[data_temp[0]].nDownlinkPort);
-						rCRC = (aRecvBuf[aRecvBuf[6]+8]<<8) | aRecvBuf[aRecvBuf[6]+7];
+						for(i = 0;i < 3;i++)
+						{
+							memset(aRecvBuf,0,sizeof(aRecvBuf));
+							SouthCmdTask_SouthMessage(data_temp,8,aRecvBuf,gDeviceInfo[data_temp[0]].nDownlinkPort,INTERVAL_500MS);
+							rCRC = (aRecvBuf[aRecvBuf[6]+8]<<8) | aRecvBuf[aRecvBuf[6]+7];
+							if(CRC16((void *)aRecvBuf,207) == rCRC)
+							{
+								break;
+							}
+						}
 
 						if(CRC16((void *)aRecvBuf,207) == rCRC)
 						{
@@ -4841,7 +4853,7 @@ UINT8 PackMainFunction(UINT8 nProtocol,UINT8 *aBuf,UINT8 nLen)
 						else
 						{
 							CRCErrcount++;
-							if(CRCErrcount > 2)
+							if(CRCErrcount > 1)
 							{
 								dSouth_Record_Information = 0;
 							}
@@ -4857,9 +4869,10 @@ UINT8 PackMainFunction(UINT8 nProtocol,UINT8 *aBuf,UINT8 nLen)
 					UINT8  file_data[SYS_FILES_LEN] = {0};             //customized data: 200 bytes
 					UINT8  data_temp[FIXED_LENGTH];
 					UINT16 rCRC;
-					DbgPrintf("South Record Transmitting!!!\r\n");
+
                 	if(SendBuf[1] == 0x10 && dSouth_Record_Information)
                 	{
+
 						data_temp[0] = (dSouth_Record_Information&0xFF00)>>8;
 						data_temp[1] = 0x2D;
 						data_temp[2] = 0x33;
@@ -4875,11 +4888,10 @@ UINT8 PackMainFunction(UINT8 nProtocol,UINT8 *aBuf,UINT8 nLen)
 							for(i = 0;i < 3;i++)
 							{
 								memset(aRecvBuf,0,sizeof(aRecvBuf));
-								SouthCmdTask(data_temp,8,aRecvBuf,gDeviceInfo[data_temp[0]].nDownlinkPort);
+								SouthCmdTask_SouthMessage(data_temp,8,aRecvBuf,gDeviceInfo[data_temp[0]].nDownlinkPort,INTERVAL_500MS);
 								rCRC = (aRecvBuf[aRecvBuf[6]+8]<<8) | aRecvBuf[aRecvBuf[6]+7];
 								if(CRC16((void *)aRecvBuf,207) == rCRC)
 								{
-//									dSouth_Record_Information = 0;
 									break;
 								}
 							}
@@ -4910,7 +4922,7 @@ UINT8 PackMainFunction(UINT8 nProtocol,UINT8 *aBuf,UINT8 nLen)
 							else
 							{
 								CRCErrcount++;
-								if(CRCErrcount > 2)
+								if(CRCErrcount > 1)
 								{
 									dSouth_Record_Information = 0;
 								}
@@ -5069,10 +5081,10 @@ UINT8 PackMainFunction(UINT8 nProtocol,UINT8 *aBuf,UINT8 nLen)
                 }
                 case S_R_DataStop:
                 {
+                	dSouth_Record_Information = 0;
                     //file export
                     if(SendBuf[15] == 0x01)
                     {
-                    	dSouth_Record_Information = 0;
                         //framing and response
                         SendBuf[1] = 0x0e;
                         nValue = gSendCount *2;
@@ -5103,12 +5115,12 @@ UINT8 PackMainFunction(UINT8 nProtocol,UINT8 *aBuf,UINT8 nLen)
                 }
                 case S_R_TransComplete:
                 {
+                	dSouth_Record_Information = 0;
                     UINT8  file_data[SYS_FILES_LEN] = {0};
                     UINT32 package_serial_num = 0;
                     //file export
                     if(SendBuf[1] == 0x0e)
                     {
-                    	dSouth_Record_Information = 0;
                         //framing and response
                         SendBuf[1] = 0x0f;
                         nValue = gSendCount *2;
@@ -6469,18 +6481,27 @@ void InquireYT(UINT8 *Msg)
 	}
 
 	/*********************************冒泡**************************************/
-	for (j = 0; j < Valid_YtDotSum - 1; j++)
+	if(0 != Valid_YtDotSum)
 	{
-		for (i = 0; i < Valid_YtDotSum - 1 - j; i++)
+		for (j = 0; j < Valid_YtDotSum - 1; j++)
 		{
-			if(uYtDotpoint[i].nMBAddr > uYtDotpoint[i+1].nMBAddr)
+			for (i = 0; i < Valid_YtDotSum - 1 - j; i++)
 			{
-				memcpy(gTypeParamPoint,&uYtDotpoint[i].nMBAddr,sizeof(struct sTypeParam));
-				memcpy(&uYtDotpoint[i].nMBAddr,&uYtDotpoint[i+1].nMBAddr,sizeof(struct sTypeParam));
-				memcpy(&uYtDotpoint[i+1].nMBAddr,gTypeParamPoint,sizeof(struct sTypeParam));
+				if(uYtDotpoint[i].nMBAddr > uYtDotpoint[i+1].nMBAddr)
+				{
+					memcpy(gTypeParamPoint,&uYtDotpoint[i].nMBAddr,sizeof(struct sTypeParam));
+					memcpy(&uYtDotpoint[i].nMBAddr,&uYtDotpoint[i+1].nMBAddr,sizeof(struct sTypeParam));
+					memcpy(&uYtDotpoint[i+1].nMBAddr,gTypeParamPoint,sizeof(struct sTypeParam));
+				}
 			}
 		}
 	}
+	else
+	{
+		DbgPrintf("No YT Point!\r\n");
+		return ;
+	}
+
 
 	/********************************查询分段*************************************/
 	for(i = 0;i < Valid_YtDotSum;i++)
@@ -6611,16 +6632,9 @@ int SouthCmdTask(UINT8 *aSendBuf,UINT8 aSendLen, UINT8 *aRecvBuf,UINT8 uDeviceId
         DbgPrintf("\r\n");
 
         writeDev(nUartFd,aSendBuf,aSendLen);
-        if(aSendBuf[0]!=0xFF && aSendBuf[1]==0x1C)
-        {
-            usleep(500000);
-        }
         GPIOSet(2,19,0);		/*南向COM处于接收状态*/
 
-//        if(dSouth_Record_Information)
-//        	usleep(500000);
-//        else
-			usleep(1000);
+		usleep(500);
 
         nRecvLen=readDev(nUartFd,aRecvBuf);
 
@@ -6633,6 +6647,80 @@ int SouthCmdTask(UINT8 *aSendBuf,UINT8 aSendLen, UINT8 *aRecvBuf,UINT8 uDeviceId
         usleep(10);
         GPIOSet(2,19,1);
 
+    }while((aSendBuf[0]!=0xFF) && (nRecvLen == 0) && ((nErrorCount++)<3));
+    return nRecvLen;
+}
+
+/*****************************************************************************
+* Description: instead  by SouthQuery below
+* Parameters:
+* Returns: none
+* Staff&Date: Liujing 2018.5.22
+*****************************************************************************/
+int SouthCmdTask_SouthMessage(UINT8 *aSendBuf,UINT8 aSendLen, UINT8 *aRecvBuf,UINT8 uDeviceId,UINT32 Interval_Time)
+{
+    UINT8 nErrorCount = 0;
+    int nRecvLen;
+
+    do
+    {
+        int i;
+        UINT16 nCRC,nFPGAValue,k;
+        UINT16 nPreValueTemp=0;
+
+        nRecvLen = -1;
+        pthread_mutex_lock(&Uartsem);
+        if(nUartFd == 0)
+        {
+            nUartFd = UartOper(2,9600);
+        }
+       nPreValueTemp=FpgaRead(3);
+        do
+        {
+            if(uDeviceId!=1)
+            {
+                nFPGAValue = 0;
+                LedSet(4,1);
+            }
+            else
+            {
+                nFPGAValue = 1;
+                LedSet(3,1);
+            }
+            FpgaWrite(3,nFPGAValue);
+        }while((FpgaRead(0x03))!=nFPGAValue);
+
+        memset(aRecvBuf,0,sizeof(aRecvBuf));
+        GPIOSet(2,19,1);		/*南向COM处于发送状态*/
+        DbgPrintf("COM.%d Send:",2-nFPGAValue);
+        for(k=0;k<aSendLen;k++)
+        {
+        	DbgPrintf("%02X ",aSendBuf[k]);
+        }
+        DbgPrintf("\r\n");
+
+        writeDev(nUartFd,aSendBuf,aSendLen);
+        GPIOSet(2,19,0);		/*南向COM处于接收状态*/
+        switch(Interval_Time)
+		{
+			case INTERVAL_200US: usleep(INTERVAL_200US); break;
+			case INTERVAL_500US: usleep(INTERVAL_500US); break;
+			case INTERVAL_1MS: usleep(INTERVAL_1MS); break;
+			case INTERVAL_500MS: usleep(INTERVAL_500MS); break;
+			case INTERVAL_1S: sleep(INTERVAL_1S); break;
+			case INTERVAL_2S: sleep(INTERVAL_2S); break;
+			default:usleep(100);break;
+		}
+        (aSendBuf[0] == 0xFF)?(usleep(200)):((aSendBuf[1] == 0x1C)?sleep(2):sleep(1));
+        nRecvLen=readDev(nUartFd,aRecvBuf);
+        do
+        {
+            FpgaWrite(0x03,nPreValueTemp);
+        }
+        while((FpgaRead(0x03))!=nPreValueTemp);
+        pthread_mutex_unlock(&Uartsem);
+        usleep(10);
+        GPIOSet(2,19,1);
     }while((aSendBuf[0]!=0xFF) && (nRecvLen == 0) && ((nErrorCount++)<3));
     return nRecvLen;
 }

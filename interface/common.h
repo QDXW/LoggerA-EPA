@@ -113,7 +113,7 @@ typedef	unsigned long long UINT64;
 //#define AlarmInfoAddr             0x067D   //1661-3260  1600Byte745
 #define AlarmInfoAddr               0x0745
 
-#define SYS_OAM_VERSION             0xA11775 //版本号
+#define SYS_OAM_VERSION             0xA11776 	//版本号
 #define SYS_DEBUG_VERSION           0x0002   //debug版本号
 #define SYS_FRAME_LEN               256
 #define MAXDEVICE                   41
@@ -466,6 +466,15 @@ typedef	unsigned long long UINT64;
 #define Net_Mode_3G         0
 #define Net_Mode_4G         1
 
+/****************************时间间隔******************************************/
+#define INTERVAL_1S				1
+#define INTERVAL_2S				2
+#define INTERVAL_200US			200
+#define INTERVAL_500US			500
+#define INTERVAL_1MS			1000
+#define INTERVAL_500MS			500000
+
+/******************************************************************************/
 int nCLKfd;
 int nADfd;
 int nDAfd;
@@ -598,9 +607,9 @@ void PlcIni();
 
 
 void HandleYT(UINT8 *Msg);//根据下发数据设置YT到对应寄存器
-int SouthCmdTask(UINT8 *aSendBuf,UINT8 aSendLen,UINT8 *aRecvBuf,UINT8 uDeviceId);//遥调南向收发
+int SouthCmdTask(UINT8 *aSendBuf,UINT8 aSendLen,UINT8 *aRecvBuf,UINT8 uDeviceId);   //遥调南向收发
+int SouthCmdTask_SouthMessage(UINT8 *aSendBuf,UINT8 aSendLen, UINT8 *aRecvBuf,UINT8 uDeviceId,UINT32 Interval_Time); //南向表计升级收发
 
-int ScanfDevice_Query(UINT8 DeviceID,UINT8 COMID,UINT8 *aRecvBuf);
 void SouthQueryTask(UINT8 *Msg,UINT8 uLen);
 void SouthSetTask(UINT8 *Msg,UINT8 uLen);
 void InitialLoggerInf();//处理c0时数采信息跑飞
