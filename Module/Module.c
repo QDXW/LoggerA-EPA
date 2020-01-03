@@ -577,6 +577,7 @@ UINT8 ModuleInit(UINT8 uStep,UINT8 uChannel,UINT8 uEncryptionMode)
                 if(nErrorCount>=30)
                 {
                     nResetCount++;
+                    DbgPrintf("Module ReInitialization Failed!!!\r\n");
                     return 0;
                 }
             }
@@ -673,7 +674,7 @@ void *ModuleThreadMasterChannel()
     UINT8 power_blink_mode=0;  //0:weak signal 1:normal signal 2:strong signal
     UINT8 aRecvBuf[1024];
     UINT16 power_time_count=0;
-
+    UINT32 Test_Count = 0;
     DbgPrintf("THREAD-----Module Client Master Channel Init!\r\n");
 
     while(1)
@@ -693,7 +694,10 @@ void *ModuleThreadMasterChannel()
         {
             gIsReportInfo = _NO;
             if(ModuleInit(MI_START,0,0)==0)
-                break;
+            {
+            	DbgPrintf("Module Initialization Failed!!!\r\n");
+            	break;
+            }
             gModemNetStatus = gModemNetStatus & 0x0F;
             gSocketHeartChannel0Count=0;
             sleep(1);
@@ -811,22 +815,25 @@ void *ModuleThreadMasterChannel()
                 }
                 writeModem((void *)"AT+QIRD=0,1024\r\n",16);
                 //usleep(5000);
-                //rnum = readModem(aRecvBuf);
+//                rnum = readModem(aRecvBuf);
                 nErrorCount=0;
                 while(1)
                 {
-                    usleep(1000);
+                    usleep(100);
                     memset(aTemp,0,sizeof(aTemp));
                     rnum = read(nModemFd,aTemp,sizeof(aTemp));
                     if(rnum<=0)
                     {
                         nErrorCount++;
                         if(nErrorCount>1000)
-                            break;
+                        {
+                        	printf("nErrorCount = %d\r\n",nErrorCount);
+                        	break;
+                        }
                     }
                     else
                     {
-//                        printf("Modem Recv = %s\r\n",aTemp);
+						printf("ModemtoA  Recv Byte%d = %s\r\n",rnum,aTemp);
                         memcpy((UINT8 *)&aRecvBuf[nRecvCountTemp],aTemp,rnum);
                         nRecvCountTemp += rnum;
                         pPoint = (void *)strstr((void *)aRecvBuf,"+");
@@ -835,21 +842,25 @@ void *ModuleThreadMasterChannel()
                             pPoint = (void *)strstr((void *)pPoint,"+QIRD: ");
                             if(pPoint!=NULL)
                             {
+                            	NorthPrintf("pPoint0 NULL!!!\r\n",nLen);
                                 pPoint += strlen("+QIRD: ");
                                 pEnd=(void *)strstr((void *)pPoint,"\r\n");
                                 if(pEnd==NULL)
                                 {
+                                	NorthPrintf("pPoint1 NULL!!!\r\n",nLen);
                                     continue;
                                 }
                                 nLen = 0;
                                 for(i=0;i<pEnd-pPoint;i++)
                                 {
                                     nLen = nLen+(pPoint[i]-0x30)*pow(10,pEnd-pPoint-i-1);
+                                    printf("nLen = %d\r\n",nLen);
                                 }
                                 pPoint = pEnd+nLen+2;
                                 pPoint = (void *)strstr((void *)pPoint,"OK");
                                 if(pPoint!=NULL)
                                 {
+                                	NorthPrintf("pPoint2 NULL!!!\r\n",nLen);
                                     nRecvCountTemp = 0;
                                     break;
                                 }
@@ -869,20 +880,21 @@ void *ModuleThreadMasterChannel()
                     usleep(1000);
                     continue;
                 }
-                if(strstr((void *)aRecvBuf,"+QIRD: ")!=NULL)
+                if(strstr((void *)aRecvBuf,"+QIRD: ") != NULL)
                 {
                     UINT8 aBufTemp[256];
                     UINT16 nPacketLen,nLenCount;
                     UINT8 aBuf[512];
                     UINT16 nLen=0;
-
                     pPoint=aRecvBuf;
                     pPoint=(void *)strstr((void *)pPoint,"+QIRD: ");
                     pPoint += strlen("+QIRD: ");
                     pEnd=(void *)strstr((void *)pPoint,"\r\n");
                     pthread_mutex_unlock(&modemsem);
+                    NorthPrintf("Modemsem End!!!\r\n");
                     if(pEnd==NULL)
                     {
+                    	NorthPrintf("pEnd NULL!!!\r\n",nLen);
                         usleep(1000);
                         continue;
                     }
@@ -890,8 +902,8 @@ void *ModuleThreadMasterChannel()
                         nLen = nLen+(pPoint[i]-0x30)*pow(10,pEnd-pPoint-i-1);
                     if(nLen!=0)
                     {
-                        NorthPrintf("[Channel 0]Modem RecvData %d Byte=",nLen);
-                        pPoint=pEnd+2;
+                    	NorthPrintf("[Channel 0]Modem RecvData %d Byte=",nLen);
+						pPoint=pEnd+2;
                         for(i=0;i<nLen;i++)
                         {
                             NorthPrintf("%02X ",pPoint[i]);
@@ -900,30 +912,53 @@ void *ModuleThreadMasterChannel()
                         memcpy(aBuf,pPoint,nLen);
                         rnum = nLen;
                         nLenCount=0;
-                        while(rnum!=nLenCount)
+                        NorthPrintf("rnum = %d\r\n",rnum);
+                        while(rnum > nLenCount)
                         {
+                        	NorthPrintf("nLenCount = %d\r\n",nLenCount);
                             memset(aBufTemp,0,sizeof(aBufTemp));
                             nPacketLen = aBuf[nLenCount+1];
                             memcpy(aBufTemp,(UINT8 *)&aBuf[nLenCount],nPacketLen+2);
                             gSocketHeartChannel0Count=0;
+                            if(aBufTemp[1] < 4)
+                            {
+                            	NorthPrintf("Data Less!!!\r\n");
+                            	break;
+                            }
                             if((aBufTemp[0]==0x68)&&(aBufTemp[1]>=4))
                             {
                                 if((aBufTemp[2]&0x01)==0)
-                                    RecvBufferAdd(1,aBufTemp,nPacketLen+2);
+                                {
+                                	NorthPrintf("RecvBufferAdd 1 Enter!!!\r\n");
+                                	RecvBufferAdd(1,aBufTemp,nPacketLen+2);
+                                	NorthPrintf("RecvBufferAdd 1 Out!!!\r\n");
+                                }
                                 else
-                                    RecvBufferAdd(0,aBufTemp,nPacketLen+2);
+                                {
+                                	NorthPrintf("RecvBufferAdd 0 Enter!!!\r\n");
+                                	RecvBufferAdd(0,aBufTemp,nPacketLen+2);
+                                	NorthPrintf("RecvBufferAdd 0 Out!!!\r\n");
+                                }
                             }
                             else
                             {
                                 if(gUpdataModeFlag==1)
                                 {
+                                	NorthPrintf("RSendUpdataResendPacket Enter!!!\r\n");
                                     SendUpdataResendPacket();
                                 }
+                                NorthPrintf("gUpdataModeFlag:%d",gUpdataModeFlag);
+                                for(i=0;i<nLen;i++)
+								{
+									NorthPrintf("%02X ",aBufTemp[i]);
+								}
+								NorthPrintf("\r\n");
                                 break;
                             }
                             nLenCount = nLenCount+nPacketLen+2;
                         }
                     }
+
                 }
                 else if(strstr((void *)aRecvBuf,"closed")!=NULL)
                 {
@@ -945,6 +980,7 @@ void *ModuleThreadMasterChannel()
             TestLogTimeFileWrite();
             TestLogStringFileWrite((void *)"Modem DisConnect\n",strlen("Modem DisConnect\n"));
         }
+        DbgPrintf("[Channel 0]Modem Closed\r\n");
         closeDev(nModemFd);
     }
 }

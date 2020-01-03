@@ -443,7 +443,20 @@ void AlarmConfirmMasterChannel(UINT8 nDeviceID,UINT8 nAlarmID,UINT16 nAddr,UINT8
                     ||(pPoint->nAlarmID==Alarm_Device_Error))
                 {
                     DbgPrintf("[Master Channel]Delete alarm node!!\r\n");
-                    aAlarmInfo[nDeviceID-1][nAddr%10000] &= ~(0x0001<<nExternID);
+                    switch(nAddr/100)
+					{
+						case 407:
+							aAlarmInfo[nDeviceID-1][nAddr%10] &= ~(0x0001<<nExternID);
+							break;
+
+						case 655:
+							aAlarmInfo[nDeviceID-1][11] &= ~(0x0001<<nExternID);
+							break;
+						default:
+							aAlarmInfo[nDeviceID-1][12] &= ~(0x0001<<nExternID);
+							break;
+					}
+//                    aAlarmInfo[nDeviceID-1][nAddr%10000] &= ~(0x0001<<nExternID);
                     if((nAlarmID==Alarm_Device_Error)&&(nAddr== 0x0001)&&(nExternID==0))
                     {
                         gDeviceAlarm = gDeviceAlarm&0xFFFE;
@@ -545,7 +558,20 @@ void AlarmConfirmSlaveChannel(UINT8 nDeviceID,UINT8 nAlarmID,UINT16 nAddr,UINT8 
                     if((pPoint->nUploadStatusMasterChannel==ALARM_NOT_REPORT)||(pPoint->nUploadStatusMasterChannel==ALARM_RECOVER_CONFIRMFLAG))
                     {
                         DbgPrintf("[AlarmConfirmSlaveChannel]Delete alarm node!!\r\n");
-                        aAlarmInfo[nDeviceID-1][nAddr%10000] &= ~(0x0001<<nExternID);
+                        switch(nAddr/100)
+						{
+							case 407:
+								aAlarmInfo[nDeviceID-1][nAddr%10] &= ~(0x0001<<nExternID);
+								break;
+
+							case 655:
+								aAlarmInfo[nDeviceID-1][11] &= ~(0x0001<<nExternID);
+								break;
+							default:
+								aAlarmInfo[nDeviceID-1][12] &= ~(0x0001<<nExternID);
+								break;
+						}
+//                        aAlarmInfo[nDeviceID-1][nAddr%10000] &= ~(0x0001<<nExternID);
                         if((nAlarmID==Alarm_Device_Error)&&(nAddr== 0x0001)&&(nExternID==0))
                         {
                             gDeviceAlarm = gDeviceAlarm&0xFFFE;
@@ -674,18 +700,29 @@ void *AlarmThreadMasterChannel()
                     pTypeGroupTemp=gTypeHead;
                     while(pTypeGroupTemp!=NULL)
                     {
+                    	if(pTypeGroupTemp == NULL)
+                    	{
+                    		DbgPrintf("/**********Pinnet pTypeGroupTemp is NULL!!!\r\n");
+							break;
+                    	}
                         if(pTypeGroupTemp->nTypeID==nDeviceTypeTemp)
                         {
                             pTypeParamTemp=pTypeGroupTemp->pParamNext;
                             while(pTypeParamTemp!=NULL)
                             {
+                            	if(pTypeParamTemp == NULL)
+								{
+									DbgPrintf("/**********Pinnet pTypeParamTemp is NULL!!!\r\n");
+									break;
+								}
                                 switch(pTypeParamTemp->nType)
                                 {
-                                    case 1:nYCCount++; /*DbgPrintf("  nYCCount:%d\n",nYCCount);*/ break;
-                                    case 2:nYXCount++;/*DbgPrintf("  nYXCount:%d\n",nYXCount);*/break;
+                                    case 1:nYCCount++;break;
+                                    case 2:nYXCount++;break;
                                     case 3:nDDCount++;break;
                                     case 4:nYKCount++;break;
                                     case 5:nSDCount++;break;
+                                    default:break;
                                 }
                                 pTypeParamTemp=pTypeParamTemp->pNext;
                             }
@@ -696,23 +733,39 @@ void *AlarmThreadMasterChannel()
                             pTypeGroupTemp=pTypeGroupTemp->pNext;
                         }
                     }
+                    /*DbgPrintf("  nYCCount:%d\n",nYCCount);*/
                     gPointTablePossessFlag&=~(1<<3);
 
-//                    DbgPrintf("YX=%d,YC=%d,YK=%d\r\n",nYXCount,nYCCount,nYKCount);
+                    DbgPrintf("YX=%d,YC=%d,YK=%d\r\n",nYXCount,nYCCount,nYKCount);
                     for(nLoopCount=0;nLoopCount<nYCCount;nLoopCount++)
                     {
+                    	if(gDeviceInfo[pPoint->nDeviceID].nYCAddr+nLoopCount > 0x7000)
+                    	{
+                    		DbgPrintf("/**********Pinnet nDeviceID:%d YCAddr:0x%X Beyond!!!\r\n",pPoint->nDeviceID,(gDeviceInfo[pPoint->nDeviceID].nYCAddr+nLoopCount));
+                    		break;
+                    	}
                         aPointBuf[gDeviceInfo[pPoint->nDeviceID].nYCAddr+nLoopCount].nValue=0xFFFFFFFF;
                         aPointBuf[gDeviceInfo[pPoint->nDeviceID].nYCAddr+nLoopCount].nPreValue=0xFFFFFFFF;
                         aPointBuf[gDeviceInfo[pPoint->nDeviceID].nYCAddr+nLoopCount].nStatus=1;
                     }
                     for(nLoopCount=0;nLoopCount<nYXCount;nLoopCount++)
                     {
+                    	if(gDeviceInfo[pPoint->nDeviceID].nYXAddr+nLoopCount > 0x7000)
+                    	{
+							DbgPrintf("/**********Pinnet YXAddr Beyond!!!\r\n");
+							break;
+						}
                         aPointBuf[gDeviceInfo[pPoint->nDeviceID].nYXAddr+nLoopCount].nValue=0xFFFFFFFF;
                         aPointBuf[gDeviceInfo[pPoint->nDeviceID].nYXAddr+nLoopCount].nPreValue=0xFFFFFFFF;
                         aPointBuf[gDeviceInfo[pPoint->nDeviceID].nYXAddr+nLoopCount].nStatus=1;
                     }
                     for(nLoopCount=0;nLoopCount<nDDCount;nLoopCount++)
                     {
+                    	if(gDeviceInfo[pPoint->nDeviceID].nDDAddr+nLoopCount > 0x7000)
+                    	{
+							DbgPrintf("/**********Pinnet DDAddr Beyond!!!\r\n");
+							break;
+						}
                         aPointBuf[gDeviceInfo[pPoint->nDeviceID].nDDAddr+nLoopCount].nValue=0xFFFFFFFF;
                         aPointBuf[gDeviceInfo[pPoint->nDeviceID].nDDAddr+nLoopCount].nPreValue=0xFFFFFFFF;
                         aPointBuf[gDeviceInfo[pPoint->nDeviceID].nDDAddr+nLoopCount].nStatus=1;

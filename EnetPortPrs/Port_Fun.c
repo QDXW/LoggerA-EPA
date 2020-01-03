@@ -270,23 +270,37 @@ struct sTypeParam *GetDeviceID(UINT16 Iec104Addr,UINT8 *nAddr)
 *****************************************************************************/
 void RecvBufferAdd(UINT8 nType,UINT8 *aBuf,UINT8 nLen)
 {
-	UINT8 j;
+	UINT8 j,i;
 	struct sSocketRecvBuf *pRecvPoint=NULL;
 
+	NorthPrintf("socketbufsem 1 Start!!!\r\n");
     pthread_mutex_lock(&socketbufsem);
     pRecvPoint=(struct sSocketRecvBuf *)malloc(sizeof(struct sSocketRecvBuf));/*申请数据空间*/
+    if(pRecvPoint == NULL)
+    {
+    	NorthPrintf("Application Space Failed!!!\r\n");
+    	return;
+    }
     memcpy(pRecvPoint->aDataBuf,aBuf,nLen);
+    NorthPrintf("\r\npRecvPoint %d Byte:",nLen);
+    for(i=0;i<nLen;i++)
+	{
+		NorthPrintf("%02X ",pRecvPoint->aDataBuf[i]);
+	}
+	NorthPrintf("\r\n");
     pRecvPoint->nLen=nLen;
     pRecvPoint->nType=nType;
     pRecvPoint->pNext=NULL;
     pRecvPoint->pPre=NULL;
     if(gRecvBufHead==NULL)/*存储区中无缓存数据,直接将数据加入存储区*/
     {
+    	NorthPrintf("gRecvBufHead NULL!!!\r\n");
         gRecvBufHead=pRecvPoint;
         gRecvBufPoint=pRecvPoint;
     }
     else/*存在数据,则将数据放入存储区末尾*/
     {
+    	NorthPrintf("gRecvBufHead Normal!!!\r\n");
         gRecvBufPoint->pNext=pRecvPoint;
         pRecvPoint->pPre=gRecvBufPoint;
         gRecvBufPoint=pRecvPoint;
@@ -313,42 +327,41 @@ void RecvBufferDeal(void)
     struct sSocketRecvBuf *pRecvPoint=NULL;
 
     pthread_mutex_lock(&socketbufsem);
+//    printf("socketbufsem!!!!\r\n");
     nFlag=0;/*0:未获取到数据 1:获取到数据*/
     pRecvPoint = gRecvBufHead;
     while(pRecvPoint!=NULL)/*当数据存储区不为空时*/
     {
         //if((g_TransSta==0)||(pRecvPoint->nType==0))/*当数采运行状态为正常工作时*/
         //if(pRecvPoint->nType==0)
-        {
-            DbgPrintf("Buffer %03d Byte to be Deal:",pRecvPoint->nLen);
-            gBufCount--;/*存储区数据计数减少*/
-            memcpy((UINT8 *)&aDataTemp.aDataBuf,(UINT8 *)&pRecvPoint->aDataBuf,pRecvPoint->nLen);
-            aDataTemp.nType=pRecvPoint->nType;
-            aDataTemp.nLen=pRecvPoint->nLen;
-            if((pRecvPoint->pPre==NULL)&&(pRecvPoint->pNext==NULL))/*此条数据为存储区最后一条数据时*/
-            {
-                gRecvBufHead=NULL;
-                gRecvBufPoint=NULL;
-            }
-            else if(pRecvPoint->pPre==NULL)/*此条数据为存储区数据队列第一条*/
-            {
-                gRecvBufHead=pRecvPoint->pNext;
-                gRecvBufHead->pPre=NULL;
-            }
-            else if(pRecvPoint->pNext==NULL)/*此条数据为存储区数据队列末尾*/
-            {
-                gRecvBufPoint=pRecvPoint->pPre;
-                gRecvBufPoint->pNext=NULL;
-            }
-            else/*此条数据为存储区数据队列中间*/
-            {
-                pRecvPoint->pPre->pNext=pRecvPoint->pNext;
-                pRecvPoint->pNext->pPre=pRecvPoint->pPre;
-            }
-            nFlag=1;
-            free(pRecvPoint);
-            break;
-        }
+		DbgPrintf("Buffer %03d Byte to be Deal:",pRecvPoint->nLen);
+		gBufCount--;/*存储区数据计数减少*/
+		memcpy((UINT8 *)&aDataTemp.aDataBuf,(UINT8 *)&pRecvPoint->aDataBuf,pRecvPoint->nLen);
+		aDataTemp.nType=pRecvPoint->nType;
+		aDataTemp.nLen=pRecvPoint->nLen;
+		if((pRecvPoint->pPre==NULL)&&(pRecvPoint->pNext==NULL))/*此条数据为存储区最后一条数据时*/
+		{
+			gRecvBufHead=NULL;
+			gRecvBufPoint=NULL;
+		}
+		else if(pRecvPoint->pPre==NULL)/*此条数据为存储区数据队列第一条*/
+		{
+			gRecvBufHead=pRecvPoint->pNext;
+			gRecvBufHead->pPre=NULL;
+		}
+		else if(pRecvPoint->pNext==NULL)/*此条数据为存储区数据队列末尾*/
+		{
+			gRecvBufPoint=pRecvPoint->pPre;
+			gRecvBufPoint->pNext=NULL;
+		}
+		else/*此条数据为存储区数据队列中间*/
+		{
+			pRecvPoint->pPre->pNext=pRecvPoint->pNext;
+			pRecvPoint->pNext->pPre=pRecvPoint->pPre;
+		}
+		nFlag=1;
+		free(pRecvPoint);
+		break;
         /*else if((g_TransSta!=1))//总召时不处理数据
         {
             pRecvPoint=pRecvPoint->pNext;

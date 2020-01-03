@@ -24,8 +24,8 @@ extern UINT16 gRecvCount;                         //recv packet count
 extern UINT8  gUpdataModeFlag;                    //0:normal 1:in update mode
 extern UINT8 gDt1000UpdataFlag;
 
-extern s104Point aPointBuf[0x6601];               //104 point data buffer
-extern UINT32 aPointTimeBuf[0x6601];              //104 point record data buffer
+extern s104Point aPointBuf[MAXADDR104];               //104 point data buffer
+extern UINT32 aPointTimeBuf[MAXADDR104];              //104 point record data buffer
 extern UINT8 gTimeCallBackTime[7];                //time of the call point
 extern UINT8 gModuleChannel0InitFlag;
 extern UINT8 gModemSlaveChannelSwitch;
@@ -34,7 +34,7 @@ extern struct sThirdPartySinglePoint *gThirdPartySinglePointHead; //head of poin
 extern struct sThirdPartySinglePoint *gThirdPartySinglePointPoint; //point of point table list
 extern struct sTypeGroup *gTypeHead;              //head of point table list
 extern sDeviceInfo gDeviceInfo[MAXDEVICE];        //information of the south device
-extern s104Point aPointBuf[0x6601];               //104 point data buffer
+extern s104Point aPointBuf[MAXADDR104];               //104 point data buffer
 extern UINT8 gSocketModeSub;                      //Sub channel socket module 1:ethernet 2:modem mode
 extern UINT8 gModeSub;                            //Sub channel mode 1:server 2:client
 extern UINT8 gModemSlaveConfigFlag;               //Sub channel config flag 0:not yet 1:already

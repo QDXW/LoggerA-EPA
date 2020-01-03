@@ -813,7 +813,22 @@ void ReadAlarmFile(void)
                 }
                 AlarmReload(nDeviceID,nAlarmID,nAlarmAddr,nOffSet);
                 if(nAlarmID == 2)
-                    aAlarmInfo[nDeviceID-1][nAlarmAddr%10000] |=  (0x0001<<nOffSet);
+                {
+                	switch(nAlarmAddr/100)
+					{
+						case 407:
+							aAlarmInfo[nDeviceID-1][nAlarmAddr%10] &= ~(0x0001<<nOffSet);
+							break;
+
+						case 655:
+							aAlarmInfo[nDeviceID-1][11] &= ~(0x0001<<nOffSet);
+							break;
+						default:
+							aAlarmInfo[nDeviceID-1][12] &= ~(0x0001<<nOffSet);
+							break;
+					}
+                }
+//                    aAlarmInfo[nDeviceID-1][nAlarmAddr%10000] |=  (0x0001<<nOffSet);
             }
         }
         free(pHead);
@@ -892,7 +907,22 @@ void ReloadAlarmFile(void)
                 if(nReloadFlag == 0)
                     AlarmReload(nDeviceID,nAlarmID,nAlarmAddr,nOffSet);
                 if(nAlarmID == 2)
-                    aAlarmInfo[nDeviceID-1][nAlarmAddr%10000] |=  (0x0001<<nOffSet);
+                {
+					switch(nAlarmAddr/100)
+					{
+						case 407:
+							aAlarmInfo[nDeviceID-1][nAlarmAddr%10] &= ~(0x0001<<nOffSet);
+							break;
+
+						case 655:
+							aAlarmInfo[nDeviceID-1][11] &= ~(0x0001<<nOffSet);
+							break;
+						default:
+							aAlarmInfo[nDeviceID-1][12] &= ~(0x0001<<nOffSet);
+							break;
+					}
+				}
+//                    aAlarmInfo[nDeviceID-1][nAlarmAddr%10000] |=  (0x0001<<nOffSet);
             }
         }
         free(pHead);

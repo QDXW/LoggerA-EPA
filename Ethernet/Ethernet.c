@@ -93,11 +93,11 @@ UINT8 SysNetInit()
     E2promRead((UINT8 *)&gDeviceIPSetFlag,DeviceIPSetAddr,1);/*获取网络信息配置标志 1:已配置 0:未配置*/
     if(gDeviceIPSetFlag!=1)        /*未配置过网络信息则使用默认信息*/
     {
-        system("ifconfig eth0 192.168.1.176");
-        aIPTemp[0]=192;
-        aIPTemp[1]=168;
-        aIPTemp[2]=1;
-        aIPTemp[3]=176;
+        system("ifconfig eth0 10.11.2.77");
+        aIPTemp[0]=10;
+        aIPTemp[1]=1;
+        aIPTemp[2]=2;
+        aIPTemp[3]=77;
     }
     else/*从存储器中获取网络信息*/
     {

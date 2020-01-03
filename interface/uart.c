@@ -401,7 +401,7 @@ int readModem(unsigned char *buffer)
         }
         else
         {
-            DbgPrintf("Modem Recv = %s\r\n",aTemp);
+            DbgPrintf("AtoModem Recv = %s\r\n",aTemp);
             memcpy(buffer,aTemp,512);
             /*if(strstr(buffer,"+QIURC")!=NULL)
                 gModemRecvFlag=1;*/

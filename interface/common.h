@@ -114,7 +114,7 @@ typedef	unsigned long long UINT64;
 #define AlarmInfoAddr               0x0745
 
 #define SYS_OAM_VERSION             0xA11776 	//版本号
-#define SYS_DEBUG_VERSION           0x0002   //debug版本号
+#define SYS_DEBUG_VERSION           0x0002   	//debug版本号
 #define SYS_FRAME_LEN               256
 #define MAXDEVICE                   41
 #define MAX_DEVICE_TYPE             8        //最大接入设备类型数
@@ -129,6 +129,7 @@ typedef	unsigned long long UINT64;
 
 /*104*/
 #define PACKETHEAD                  0x68
+#define MAXADDR104                  0x7000
 
 /*104命令标识*/
 #define M_SP_NA                     0x01//单点信息
@@ -504,6 +505,7 @@ int nLogApartFd;
  */
 unsigned char gCurrentDayNum;
 unsigned char gCurrentMonthNum;
+UINT8 Grant_TimeCount;
 /**
  * 是否已经将数采设备的信息发送给平台
  * 通过C0指令实现

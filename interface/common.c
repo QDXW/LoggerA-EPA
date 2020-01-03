@@ -97,6 +97,7 @@ extern UINT8 gConnectDeviceMaxNum;
 extern UINT16 gDeviceAlarm;
 extern UINT8 gDLinkDeviceInfoCount;
 extern struct sTypeGroup *gTypeHeadBuf;
+extern UINT8 Grant_TimeCount;
 
 extern UINT8 gIVLicenseStatus;
 extern UINT32 gIVLicenseCount;                //0:normal  FF:report all device license info
@@ -165,8 +166,8 @@ unsigned char auchCRCLo[] = {
 
 extern sDeviceInfo gDeviceInfo[MAXDEVICE];
 extern sDeviceInfo gDeviceInfoBuf[MAXDEVICE];
-extern s104Point aPointBuf[0x6601];
-extern UINT32 aPointTimeBuf[0x6601];
+extern s104Point aPointBuf[MAXADDR104];
+extern UINT32 aPointTimeBuf[MAXADDR104];
 extern UINT8 gTimeCallBackTime[7];
 extern UINT8 gConnectDeviceNum;
 struct sTypeGroup *gTypeGroupPointMB=NULL;
@@ -1099,7 +1100,18 @@ void AddChangeBuf(UINT8 nFlag,UINT8 nDataType,UINT16 nAddr,UINT32 nValue)
             else
                 uIE.nIndex=nValue;
             memcpy((UINT8 *)&gYCChangeBuf[gYCChangeCount*8],(UINT8 *)&nAddr,2);
-            memcpy((UINT8 *)&gYCChangeBuf[gYCChangeCount*8+3],uIE.nChar,4);
+//            if(((gTypeParamPointMB->nDataType == Type_Data_UINT16) && (nValue == 0x477FFF00)) ||
+//					((gTypeParamPointMB->nDataType == Type_Data_UINT32) && (nValue == 0x4F800000)))
+//			{
+//				gYCChangeBuf[gYCChangeCount*8+3] = 0xFF;
+//				gYCChangeBuf[gYCChangeCount*8+4] = 0xFF;
+//				gYCChangeBuf[gYCChangeCount*8+5] = 0xFF;
+//				gYCChangeBuf[gYCChangeCount*8+6] = 0xFF;
+//			}
+//			else
+//			{
+				memcpy((UINT8 *)&gYCChangeBuf[gYCChangeCount*8+3],uIE.nChar,4);
+//			}
             gYCChangeCount++;
             if((gYCChangeCount*8)>230)
                 SendChangeBuf(nFlag);
@@ -1487,7 +1499,7 @@ void *LocalThread()
 
     int nDay=0;
     UINT8 nCurrentLoopFlag=0;
-    UINT32 nMinDelay = 5,nOldMinDelay = 0;
+    UINT32 nMinDelay = 0,nOldMinDelay = 0;
     UINT16 nFPGAValue=0;
     UINT8 crc_error_count=0;
     UINT8 DeviceCountBuf=0;
@@ -1523,7 +1535,6 @@ void *LocalThread()
             continue;
         }
 
-        usleep(500000);
         memset(gMBRecvBuf,0,sizeof(gMBRecvBuf));/*清空南向数据缓存*/
         if((gTypeGroupPointMB==NULL)||(gDeviceInfo[gMBQueryDeviceCountBuf].nInUse==0))
         {
@@ -1869,9 +1880,11 @@ void *LocalThread()
                 case Type_104_YX:
                 {
                     UINT32 nDataAddr;
-                    if(nValueTemp==0xFFFF || nValueTemp==0xFFFFFFFF)
+                    if(((nValueTemp==0xFFFF && gTypeParamPointMB->nDataType==Type_Data_UINT16)) ||
+                    		((nValueTemp==0xFFFFFFFF)&&(gTypeParamPointMB->nDataType==Type_Data_UINT32)))
                     {
-                        DbgPrintf("[Alarm]0xFFFF Do Nothing\r\n");
+                    	DbgPrintf("[Alarm]nMBAddr = %d nValueTemp = 0x%X  Do Nothing!!!\r\n",
+							gTypeParamPointMB->nMBAddr,nValueTemp);
                         break;
                     }
                     nValueTemp = nValueTemp&0x0001;
@@ -1905,9 +1918,11 @@ void *LocalThread()
                 {
                     UINT32 nDataAddr;
                     INT32 nDataTemp;
-					if(nValueTemp==0xFFFF || ((nValueTemp==0xFFFFFFFF)&&(gTypeParamPointMB->nDataType==Type_Data_INT32)))
+					if(((nValueTemp==0xFFFF && gTypeParamPointMB->nDataType==Type_Data_UINT16)) ||
+							((nValueTemp==0xFFFFFFFF)&&(gTypeParamPointMB->nDataType==Type_Data_UINT32)))
                     {
-                        DbgPrintf("[Alarm]0xFFFF Do Nothing\r\n");
+						DbgPrintf("[Alarm]nMBAddr = %d nValueTemp = 0x%X  Do Nothing!!!\r\n",
+								gTypeParamPointMB->nMBAddr,nValueTemp);
                         break;
                     }
 
@@ -1972,11 +1987,13 @@ void *LocalThread()
                 case Type_104_DD:
                 {
                     UINT32 nDataAddr;
-					if(nValueTemp==0xFFFF || nValueTemp==0xFFFFFFFF)
-                    {
-                        DbgPrintf("[Alarm]0xFFFF Do Nothing\r\n");
-                        break;
-                    }
+                    if(((nValueTemp==0xFFFF && gTypeParamPointMB->nDataType==Type_Data_UINT16)) ||
+							((nValueTemp==0xFFFFFFFF)&&(gTypeParamPointMB->nDataType==Type_Data_UINT32)))
+					{
+						DbgPrintf("[Alarm]nMBAddr = %d nValueTemp = 0x%X  Do Nothing!!!\r\n",
+								gTypeParamPointMB->nMBAddr,nValueTemp);
+						break;
+					}
                     nDataAddr=gDeviceInfo[gMBQueryDeviceCountBuf].nDDAddr+nPointCount;
                     if(gTypeParamPointMB->nDataType == Type_Data_FLOAT)
                     {
@@ -1996,13 +2013,27 @@ void *LocalThread()
                     UINT32 nDataAddr=0;
                     UINT8 nAlarmValueCount;
 
-					if(nValueTemp==0xFFFF || nValueTemp==0xFFFFFFFF)
-                    {
-                        DbgPrintf("[Alarm]0xFFFF Do Nothing\r\n");
-                        break;
-                    }
+                    if(((nValueTemp==0xFFFF && gTypeParamPointMB->nDataType==Type_Data_UINT16)) ||
+							((nValueTemp==0xFFFFFFFF)&&(gTypeParamPointMB->nDataType==Type_Data_UINT32)))
+					{
+						DbgPrintf("[Alarm]nMBAddr = %d nValueTemp = 0x%X  Do Nothing!!!\r\n",
+								gTypeParamPointMB->nMBAddr,nValueTemp);
+						break;
+					}
                     nValueTemp = nValueTemp&0xFFFF;
-                    nAlarmPointCount=gTypeParamPointMB->nMBAddr%10000;
+                    switch(gTypeParamPointMB->nMBAddr/100)
+                    {
+						case 407:
+							nAlarmPointCount=gTypeParamPointMB->nMBAddr%10;
+							break;
+
+						case 655:
+							nAlarmPointCount = 11;
+							break;
+						default:
+							nAlarmPointCount = 12;
+							break;
+                    }
 
                     AddPointRecord(nDataAddr,gMBQueryDeviceCountBuf,gTypeParamPointMB->nMBAddr,nValueTemp,gTypeParamPointMB->nDataType);
 
@@ -2071,7 +2102,6 @@ void *SouthUpdatethread()
 		   gDt1000UpdataFlag=0;
 		   DbgPrintf("SOUTH UPDATA END!!!\n");
 	   }
-
        sleep(1);
     }
 }
@@ -2115,8 +2145,8 @@ void SouthBroadcastUpdata(void)
 	uTmpData[27] = uTmpCrc>>8;
 
 	DbgPrintf("Upgrade Vertion：%17s File Len：%d\n",&uTmpData[4],gDt1000Update.nDataLen);
-	SouthCmdTask_SouthMessage(uTmpData,28,aRecvBuf,0,INTERVAL_200US);
-	SouthCmdTask_SouthMessage(uTmpData,28,aRecvBuf,1,INTERVAL_200US);
+	SouthCmdTask_SouthMessage(uTmpData,28,aRecvBuf,0,INTERVAL_2S);
+	SouthCmdTask_SouthMessage(uTmpData,28,aRecvBuf,1,INTERVAL_2S);
 	DbgPrintf("Broadcast Upgrade Total PackNum:%d Frame\r\n",((gDt1000Update.nDataLen%uFrameLen == 0)?gDt1000Update.nDataLen/uFrameLen:(gDt1000Update.nDataLen/uFrameLen+1)));
 	//====================================================================================
 	//升级数据传输
@@ -2147,8 +2177,8 @@ void SouthBroadcastUpdata(void)
 			uTmpCrc = CRC16(uTmpData,uReadDataLen+6);
 			uTmpData[uReadDataLen+6]=uTmpCrc&0XFF;
 			uTmpData[uReadDataLen+7]=uTmpCrc>>8;
-			SouthCmdTask_SouthMessage(uTmpData,uReadDataLen+8,aRecvBuf,0,INTERVAL_200US);
-			SouthCmdTask_SouthMessage(uTmpData,uReadDataLen+8,aRecvBuf,1,INTERVAL_200US);
+			SouthCmdTask_SouthMessage(uTmpData,uReadDataLen+8,aRecvBuf,0,INTERVAL_1S);
+			SouthCmdTask_SouthMessage(uTmpData,uReadDataLen+8,aRecvBuf,1,INTERVAL_1S);
 			DbgPrintf("Broadcast Upgrade PackNum:%d Frame  DataLen:%d\r\n",s_uSendseq,uReadDataLen);
 		}
 	}
@@ -2864,7 +2894,6 @@ void *ScanfDeviceThread()
 			gUploadHWDeviceFlag = 0;
             for(i=1;i<MAXDEVICE;i++)
             {
-            	usleep(500000);
                 UINT8 nComBegin,nComEnd,j;
                 int nRecvLen=0;
 				if(gDt1000UpdataFlag==1)
@@ -4477,10 +4506,11 @@ void *PeriodicResetThread()
         //printf("[PeriodicResetThread]g_nRemotesockfd=%d\n",g_nRemotesockfd);
         if((gTypePointClearFlag==1)&&(gPointTablePossessFlag==0))
         {
+        	printf("555Erase Point Table gTypeHead\r\n");
             TypePointClear();
-            printf("555Erase Point Table gTypeHead");
             gTypeHead=gTypeHeadBuf;
             gTypeHeadBuf=NULL;
+            Grant_TimeCount = 0xEE;
             PointInfoFileWrite();
 
             gDeviceTypeNum=gDeviceTypeNumBuf;
@@ -4524,6 +4554,7 @@ void *PeriodicResetThread()
                 ReportDeviceInfoToThirdPartyServer(1);
             InitDeviceIecInfo();
         }
+
         sleep(10);
     }
 
@@ -4586,6 +4617,7 @@ void *PeriodicResetThread()
                 ReportDeviceInfoToThirdPartyServer(1);
             InitDeviceIecInfo();
         }
+
         sleep(10);
     }
 }

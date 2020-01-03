@@ -34,6 +34,7 @@ UINT8 gMainDeviceStatus=0;                   //Logger Init Flag   1:init success
 UINT8 gMainDeviceIP[4];
 UINT8 gMainDeviceConfig;                     //Logger Build Station Status 1:build ok 0:null
 UINT8 dYTPiontCount = 0;
+UINT8 Grant_TimeCount = 0;
 
 UINT8 gStationID[32];                        //Station ID
 UINT8 gStationName[20];                      //Station Name
@@ -44,6 +45,7 @@ UINT8 gDeviceIPSetFlag=0;                    //Device IP Set flag  1:set 0:null
 UINT8 gDeviceIPSetTempFlag=0;                //Device IP Config Status 1:in config thread 0:normal
 UINT8 gServerIP[4];                          //Socket Server IP
 UINT32 gDeviceOldVer=0;                      //legacy version
+UINT32 gHeart_Time=0;                        //legacy version
 UINT8 gDeviceStationBuild=0;                 //station build status 2:connect server 4:upload station information 6:start build station
 
 UINT8 g_TransSta=1;                          //socket work status 0,stop 1:start 3:call 4:call end 5:DD call 6:DD call end 7:call with time 8:call with time end
@@ -82,8 +84,8 @@ sDeviceInfo gDeviceInfoBuf[MAXDEVICE];       //information of the south device
 
 UINT8 gBufCount=0;                           // S/U frame count in recv buffer
 UINT8 gIBufCount=0;                          // I frame count in recv buffer
-s104Point aPointBuf[0x6601];                 // 104 point data buffer
-UINT32 aPointTimeBuf[0x6601];                // 104 point record data buffer
+s104Point aPointBuf[MAXADDR104];                 // 104 point data buffer
+UINT32 aPointTimeBuf[MAXADDR104];                // 104 point record data buffer
 UINT8 gPhone[11];                            //alarm upload phone number
 UINT8 gDLinkDeviceInfoCount=0;               //遍历最大支持设备数时的计数
 UINT8 gDLinkDeviceCount=0;                   //下联设备信息获取计数
@@ -177,6 +179,20 @@ void DriverInit(void)
     UINT8 nTemp;
     int i;
 
+    /****************************临时更改端口号******************************/
+//    UINT8 ServerDomainNamePort[2] = {0x4A,0x0A};	/* (UINT8 *)大端模式存取 64443*/
+//    UINT8 ServerDomainNamePort[2] = {0xE2,0xF3};	/* (UINT8 *)大端模式存取 17443*/
+//    UINT16 ServerDomainNamePortNum = 0;
+//    E2promWrite((UINT8 *)&ServerDomainNamePort[0],ServerDomainNamePortAddr,2);
+//    E2promRead((UINT8 *)&ServerDomainNamePortNum,ServerDomainNamePortAddr,2);
+//    printf("\r\n/******************ServerDomainNamePort = %d******************/\r\n",ServerDomainNamePortNum);
+
+    /****************************临时更改数采IP********************************/
+//    UINT8 gMainDeviceIP_Temper[4] = {10,11,2,77};
+//    E2promWrite(gMainDeviceIP_Temper,DeviceIP_E2P,4);
+//    gDeviceIPSetFlag=1;
+//	E2promWrite((UINT8 *)&gDeviceIPSetFlag,DeviceIPSetAddr,1);
+
     pthread_mutex_init(&e2promSem,NULL);
     pthread_mutex_init(&threadFileSem,NULL);
     pthread_mutex_init(&socketbufsem,NULL);
@@ -239,10 +255,11 @@ void DriverInit(void)
     E2promRead((UINT8 *)&gMainDeviceIP,DeviceIP_E2P,4);
     if(gMainDeviceIP[0]==255)
     {
-        gMainDeviceIP[0]=192;
-        gMainDeviceIP[1]=168;
-        gMainDeviceIP[2]=1;
-        gMainDeviceIP[3]=176;
+    	printf("Initialize IP Addr!!!\r\n");
+        gMainDeviceIP[0]=10;
+        gMainDeviceIP[1]=11;
+        gMainDeviceIP[2]=2;
+        gMainDeviceIP[3]=77;
     }
     E2promRead((UINT8 *)&gMainDeviceConfig,DeviceConfigAddr,1);
     if(gMainDeviceConfig>1)
@@ -255,7 +272,7 @@ void DriverInit(void)
     }
     printf("************************Logger  Information*************************\r\n");
     printf("ID = %d   IP = %d.%d.%d.%d\r\n",DeviceAddress,gMainDeviceIP[0],gMainDeviceIP[1],gMainDeviceIP[2],gMainDeviceIP[3]);
-
+    system("ifconfig eth0 down");
     for(i=0;i<20;i++)
     {
         if(gMainDeviceName[i]==0xFF)
@@ -280,28 +297,18 @@ void DriverInit(void)
         printf("SN   =%s\r\n",gMainDeviceSN);
         memset(aSNBuf,0,sizeof(aSNBuf));
         system("ifconfig eth0 down");
-        sleep(1);
 //        switch(gMainDeviceSN[15])
 //        {
-//            case 'R':
-//            case 'N':
-//            case 'r':
-//                gConnectDeviceMaxNum=40;
-//                break;
-//            case 'E':
-//            case 'e':
-//                gConnectDeviceMaxNum=30;
-//                break;
 //            case 'F':
 //            case 'f':
-//                gConnectDeviceMaxNum=15;
+//                gConnectDeviceMaxNum=40;
 //                break;
 //            case 'T':
 //            case 't':
-//                gConnectDeviceMaxNum=5;
+//                gConnectDeviceMaxNum=20;
 //                break;
 //            default:
-//                gConnectDeviceMaxNum=40;
+//                gConnectDeviceMaxNum=20;
 //        }
         gConnectDeviceMaxNum=40;
         switch(gMainDeviceSN[16])
@@ -384,7 +391,6 @@ void DriverInit(void)
     E2promRead(&nTemp,DevicePointConfigAddr,1);
     printf("************************Device  Information************************\r\n");
     printf("Device Number = %d\r\n",gConnectDeviceNum);
-    sleep(3);
     SysNetInit();
     memset(gDeviceInfoBuf,0,sizeof(gDeviceInfoBuf));
 
@@ -473,6 +479,7 @@ void *NorthernHeartbeatThreadMasterChannel()
             else
                 gSocketHeartChannel0Count++;
         }
+        printf("Printf Heartbeat  Socket = %d  Channel0 = %d  Remotesock = %d!!!\r\n",gSocketMode,gModuleChannel0InitFlag,g_nRemotesockfd);
         sleep(100);
     }
 }
@@ -1189,9 +1196,10 @@ void SendSFramePacket(void)
 {
     UINT8 aSendBuf[6]={0x68,0x04,0x01,0x00,0x00,0x00};
     UINT16 nCount;
-
+    gHeart_Time = time((time_t *)NULL);
     nCount=(gRecvCount<<1);
     memcpy(&aSendBuf[4],(UINT8 *)&nCount,2);
+    printf("Reply Heartbeat!!!\r\n");
     Socket_Send(aSendBuf,6);
 }
 
@@ -1219,7 +1227,12 @@ void SendUpdataResendPacket(void)
     memcpy((UINT8 *)&aBuf[10],(UINT8 *)&gMainDeviceID,2);
     nPacketNum = gUpdataCount+1;
     memcpy((UINT8 *)&aBuf[15],(UINT8 *)&nPacketNum,3);
-    ModemSend(0,aBuf,18);
+
+    pthread_mutex_lock(&modemsem);
+	usleep(200000);
+	ModemSend(0,aBuf,18);
+	pthread_mutex_unlock(&modemsem);
+
 }
 
 /*****************************************************************************
@@ -1577,7 +1590,14 @@ void TotalCallPacket()
                 {
                     break;
                 }
-                if((0x4F800000 == aPointBuf[0x4001+i].nValue)&&(aPointBuf[0x4001+i].nLen== 5))
+				if(((0x4F800000 == aPointBuf[0x4001+i].nValue)&&(aPointBuf[0x4001+i].nLen== 3))||
+						((0x477FFF00 == aPointBuf[0x4001+i].nValue)&&(aPointBuf[0x4001+i].nLen== 1)))
+				{
+					aPointBuf[0x4001+i].nValue = 0xFF;
+					aPointBuf[0x4001+i+1].nValue = 0xFF;
+					aPointBuf[0x4001+i+2].nValue = 0xFF;
+					aPointBuf[0x4001+i+3].nValue = 0xFF;
+				}
                 memcpy((UINT8 *)&aBuf[9+(i-gYCPointCount)*5],(UINT8 *)&aPointBuf[0x4001+i].nValue,4);
                 //printf("YCCCCCC  addr =   %d   value = %d\r\n",0x4001+i,aPointBuf[0x4001+i].nPreValue);
                 aBuf[9+(i-gYCPointCount)*5+4]=0;
@@ -2217,7 +2237,7 @@ UINT8 PackMainFunction(UINT8 nProtocol,UINT8 *aBuf,UINT8 nLen)
             UINT16 nSec;
             char *aCmd="date -s %02d%02d%02d%02d20%02d.%02d";
             char aSetcmd[50];
-            UINT8 aTimeBuf[6];
+            UINT8 aTimeBuf[7];
             UINT8 MB_send_buf[11];
             EPOCHTIME posix_time;
             struct sTypeGroup *gTypeGroupPoint=NULL;
@@ -2250,8 +2270,12 @@ UINT8 PackMainFunction(UINT8 nProtocol,UINT8 *aBuf,UINT8 nLen)
             RTCSet(aTimeBuf);
             TestLogStringFileWrite((void *)"System Time Set Confirm\n",strlen("System Time Set Confirm\n"));
             gIVLicenseStatus=0xFF;
-            posix_time = time((time_t *)NULL);
-            DbgPrintf("posix_time = %ld\n",posix_time);
+            while((Grant_TimeCount++) < 11)
+            {
+            	DbgPrintf("Waiting Grant Time!!!\r\n");
+            	sleep(1);
+            }
+            Grant_TimeCount = 0xEE;
             for(i = 0; i < MAXDEVICE; i++)
             {
                 if(gDeviceInfo[i].nInUse == _YES)
@@ -2266,12 +2290,15 @@ UINT8 PackMainFunction(UINT8 nProtocol,UINT8 *aBuf,UINT8 nLen)
                             break;
                     }
                     if(gTypeGroupPoint == NULL)
-                        continue;
+                    {
+                    	continue;
+                    }
 
                     if(gTypeGroupPoint->nProtocalTypeID != Type_Huawei_Modbus)
                     {
                         continue;
                     }
+
                     gTypeParamPoint = gTypeGroupPoint->pParamNext;
                     while(gTypeParamPoint != NULL)
                     {
@@ -2282,22 +2309,23 @@ UINT8 PackMainFunction(UINT8 nProtocol,UINT8 *aBuf,UINT8 nLen)
                     }
 //                    if((gTypeParamPoint != NULL) && (gTypeParamPoint->nDataType == Type_Data_EPOCHTIME))
                     if(gTypeParamPoint != NULL)
-                    {
-                        MB_send_buf[0] = i;
-                        MB_send_buf[1] = 0x10;
-                        MB_send_buf[2] = 0x9C;
-                        MB_send_buf[3] = 0x42;//DT1000 device
-                        MB_send_buf[4] = 0x00;
-                        MB_send_buf[5] = 0x02;
-                        MB_send_buf[6] = 0x04;
-                        MB_send_buf[7] = (unsigned char) (posix_time >> 24);
-                        MB_send_buf[8] = (unsigned char) (posix_time >> 16);
-                        MB_send_buf[9] = (unsigned char) (posix_time >> 8);
-                        MB_send_buf[10] = (unsigned char) posix_time;
-                        pthread_mutex_lock(&Uartsem);
-                        ComWrite(gDeviceInfo[i].nDownlinkPort,MB_send_buf,11);
-                        pthread_mutex_unlock(&Uartsem);
-                    }
+					{
+						MB_send_buf[0] = i;
+						MB_send_buf[1] = 0x10;
+						MB_send_buf[2] = 0x9C;
+						MB_send_buf[3] = 0x42;//DT1000 device
+						MB_send_buf[4] = 0x00;
+						MB_send_buf[5] = 0x02;
+						MB_send_buf[6] = 0x04;
+						posix_time = time((time_t *)NULL);
+						MB_send_buf[7] = (unsigned char) (posix_time >> 24);
+						MB_send_buf[8] = (unsigned char) (posix_time >> 16);
+						MB_send_buf[9] = (unsigned char) (posix_time >> 8);
+						MB_send_buf[10] = (unsigned char) posix_time;
+						pthread_mutex_lock(&Uartsem);
+						ComWrite(gDeviceInfo[i].nDownlinkPort,MB_send_buf,11);
+						pthread_mutex_unlock(&Uartsem);
+					}
                 }
             }
             gPointTablePossessFlag&=~(1<<8);
@@ -3233,6 +3261,7 @@ UINT8 PackMainFunction(UINT8 nProtocol,UINT8 *aBuf,UINT8 nLen)
                     TagBaseFileWrite();
                     TagInfoFileWrite();
                     gTypePointClearFlag=1;
+                    Grant_TimeCount = 0;
                     printf("gTypePointClearFlag = %d  gPointTablePossessFlag = %d\r\n",gTypePointClearFlag,gPointTablePossessFlag);
                 }
             }
@@ -6294,38 +6323,44 @@ void SetYT(UINT8 *Msg,UINT8 DeviceSdSum)
     UINT16 uDevice104Addr;
 
 	uDevice104Addr=Msg[12]|Msg[13]<<8;
-	for(uDeviceCount=0;uDeviceCount<MAXDEVICE;uDeviceCount++)
-	{
-		 if(gDeviceInfo[uDeviceCount].nInUse==1)
-         {
-              if((gDeviceInfo[uDeviceCount].nSDAddr <= uDevice104Addr) && (uDevice104Addr < (gDeviceInfo[uDeviceCount].nSDAddr+DeviceSdSum)))
-              {
-				  uDeviceID=uDeviceCount;
-				  break;
-			  }
-		 }
-	}
-    DbgPrintf("uDeviceID:%d\r\n",uDeviceID);
+	DbgPrintf("uDevice104Addr = %d\r\n",uDevice104Addr);
+//	for(uDeviceCount=0;uDeviceCount<MAXDEVICE;uDeviceCount++)
+//	{
+//		 if(gDeviceInfo[uDeviceCount].nInUse==1)
+//         {
+//              if((gDeviceInfo[uDeviceCount].nSDAddr <= uDevice104Addr) && (uDevice104Addr < (gDeviceInfo[uDeviceCount].nSDAddr+DeviceSdSum)))
+//              {
+//				  uDeviceID=uDeviceCount;
+//				  break;
+//			  }
+//		 }
+//	}
+	gTypeGroupPoint = GetDeviceID(uDevice104Addr,&uDeviceID);
+    DbgPrintf("uDeviceID:%d  nTypeID = %d\r\n",uDeviceID,gTypeGroupPoint->nTypeID);
 	//uDeviceID=Msg[10];//设备地址
-
-	gTypeGroupPoint = gTypeHead;
-
-	 while(gTypeGroupPoint != NULL)
-    {
-        if(gTypeGroupPoint->nTypeID != gDeviceInfo[uDeviceID].nType)
-        {
-			gTypeGroupPoint = gTypeGroupPoint->pNext;
-		}
-        else
-		{
-			break;
-		}
-    }
+//
+//	gTypeGroupPoint = gTypeHead;
+//
+//	 while(gTypeGroupPoint != NULL)
+//    {
+//        if(gTypeGroupPoint->nTypeID != gDeviceInfo[uDeviceID].nType)
+//        {
+//			gTypeGroupPoint = gTypeGroupPoint->pNext;
+//		}
+//        else
+//		{
+//			break;
+//		}
+//    }
     if(gTypeGroupPoint == NULL)
-        return;
+    {
+    	DbgPrintf("gTypeGroupPoint NULL!!!\r\n");
+    	return;
+    }
 
     if(gTypeGroupPoint->nProtocalTypeID != Type_Huawei_Modbus)
     {
+    	DbgPrintf("nProtocalTypeID Not Huawei Modbus!!!\r\n");
 		return;
     }
 	gTypeParamPoint = gTypeGroupPoint->pParamNext;
@@ -6501,7 +6536,6 @@ void InquireYT(UINT8 *Msg)
 		DbgPrintf("No YT Point!\r\n");
 		return ;
 	}
-
 
 	/********************************查询分段*************************************/
 	for(i = 0;i < Valid_YtDotSum;i++)
@@ -6711,7 +6745,6 @@ int SouthCmdTask_SouthMessage(UINT8 *aSendBuf,UINT8 aSendLen, UINT8 *aRecvBuf,UI
 			case INTERVAL_2S: sleep(INTERVAL_2S); break;
 			default:usleep(100);break;
 		}
-        (aSendBuf[0] == 0xFF)?(usleep(200)):((aSendBuf[1] == 0x1C)?sleep(2):sleep(1));
         nRecvLen=readDev(nUartFd,aRecvBuf);
         do
         {
@@ -6719,7 +6752,7 @@ int SouthCmdTask_SouthMessage(UINT8 *aSendBuf,UINT8 aSendLen, UINT8 *aRecvBuf,UI
         }
         while((FpgaRead(0x03))!=nPreValueTemp);
         pthread_mutex_unlock(&Uartsem);
-        usleep(10);
+        usleep(100);
         GPIOSet(2,19,1);
     }while((aSendBuf[0]!=0xFF) && (nRecvLen == 0) && ((nErrorCount++)<3));
     return nRecvLen;

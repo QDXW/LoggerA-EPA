@@ -187,9 +187,15 @@ int main(int   argc,   char*   argv[])
 
     DbgPrintf("#############  Periodic  Reset  Thread  ####################\r\n");
     pthread_create(&Reset_Thread, NULL, PeriodicResetThread, (void *)NULL);
-
+//    UINT8 ResetCount = 0;
     while(1)
     {
         sleep(30);
+//        ResetCount++;
+//        if(ResetCount > 239)
+//        {
+//        	sleep(1);
+//        	system("reboot -f");
+//        }
     }
 }
